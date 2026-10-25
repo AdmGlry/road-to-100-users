@@ -422,6 +422,79 @@ begin
 end
 $$;
 
+-- -----------------------------------------------------------------------------
+-- Sprint 3: atomic send quota (reserve_send_slot) + one application per lead
+-- -----------------------------------------------------------------------------
+reset role;
+
+do $$
+declare
+  b constant uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  used int;
+  slot uuid;
+begin
+  select count(*) into used from public.send_log
+   where user_id = b and sent_at > now() - interval '24 hours';
+  slot := public.reserve_send_slot(b, null, used + 1);
+  if slot is null then
+    raise exception 'FAIL: reserve_send_slot refused a slot under the limit';
+  end if;
+  if public.reserve_send_slot(b, null, used + 1) is not null then
+    raise exception 'FAIL: reserve_send_slot exceeded the limit';
+  end if;
+  -- Releasing the slot (failed send) frees the quota again.
+  delete from public.send_log where id = slot;
+  if public.reserve_send_slot(b, null, used + 1) is null then
+    raise exception 'FAIL: released slot not available again';
+  end if;
+  raise notice 'PASS: reserve_send_slot enforces the rolling quota';
+end
+$$;
+
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  begin
+    perform public.reserve_send_slot('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', null, 1000);
+    raise exception 'FAIL: authenticated may call reserve_send_slot';
+  exception when insufficient_privilege then
+    raise notice 'PASS: reserve_send_slot is service-role only';
+  end;
+  begin
+    perform public.trigger_send_queue();
+    raise exception 'FAIL: authenticated may call trigger_send_queue';
+  exception when insufficient_privilege then
+    raise notice 'PASS: trigger_send_queue is not callable by clients';
+  end;
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
+do $$
+declare
+  lead_b uuid;
+begin
+  select id into lead_b from public.leads
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' limit 1;
+  if not exists (select 1 from public.applications where lead_id = lead_b) then
+    insert into public.applications (user_id, lead_id)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', lead_b);
+  end if;
+  begin
+    insert into public.applications (user_id, lead_id)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', lead_b);
+    raise exception 'FAIL: two applications for the same lead';
+  exception when unique_violation then
+    raise notice 'PASS: one application per lead';
+  end;
+  -- trigger_send_queue is a no-op without vault / pg_net (must not fail).
+  perform public.trigger_send_queue();
+  raise notice 'PASS: trigger_send_queue no-op without vault';
+end
+$$;
+
 -- GDPR: deleting auth user A removes ALL of A's rows.
 delete from auth.users where id = :user_a;
 

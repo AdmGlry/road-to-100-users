@@ -169,6 +169,29 @@ export function getAppUrl(source: EnvSource = process.env): string {
   return parseEnv(appUrlSchema, source).APP_URL;
 }
 
+const webSearchSchema = z.object({
+  WEBSEARCH_PROVIDER: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim().toLowerCase() || undefined : v),
+    z
+      .enum(["none", "openrouter", "brave"], {
+        error: 'must be "none", "openrouter" or "brave"',
+      })
+      .default("none"),
+  ),
+  BRAVE_SEARCH_API_KEY: optional(),
+});
+export type WebSearchEnv = z.infer<typeof webSearchSchema>;
+
+/** Web search used by the hunter enrichment (SPEC §7.4). "none" disables it. */
+export function getWebSearchEnv(source: EnvSource = process.env): WebSearchEnv {
+  return parseEnv(webSearchSchema, source);
+}
+
+/** True when the three Google OAuth variables for Gmail are set. */
+export function isGoogleConfigured(source: EnvSource = process.env): boolean {
+  return googleSchema.safeParse(source).success;
+}
+
 export function getResendApiKey(source: EnvSource = process.env): string | undefined {
   return parseEnv(z.object({ RESEND_API_KEY: optional() }), source).RESEND_API_KEY;
 }

@@ -157,23 +157,21 @@ begin
 end
 $$;
 
--- google_connection_status view: own row only, no token column
+-- google_connection_status(): own row only, no token column
 do $$
 declare
   n int;
 begin
-  select count(*) into n from public.google_connection_status;
+  select count(*) into n from public.google_connection_status();
   if n <> 1 then
-    raise exception 'FAIL: view returns % rows for A (expected 1)', n;
+    raise exception 'FAIL: google_connection_status() returns % rows for A (expected 1)', n;
   end if;
-  if (select user_id from public.google_connection_status)
+  if (select user_id from public.google_connection_status())
        <> 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' then
-    raise exception 'FAIL: view returns another user''s row';
+    raise exception 'FAIL: google_connection_status() returns another user''s row';
   end if;
-  if exists (select 1 from information_schema.columns
-             where table_schema = 'public' and table_name = 'google_connection_status'
-               and column_name like '%token%') then
-    raise exception 'FAIL: view exposes a token column';
+  if pg_get_function_result('public.google_connection_status()'::regprocedure) like '%token%' then
+    raise exception 'FAIL: google_connection_status() exposes a token column';
   end if;
   raise notice 'PASS: google_connection_status returns own row only, without tokens';
 end
@@ -294,7 +292,7 @@ set role anon;
 do $$
 begin
   begin
-    perform 1 from public.google_connection_status;
+    perform 1 from public.google_connection_status();
     raise exception 'FAIL: anon can read google_connection_status';
   exception when insufficient_privilege then null;
   end;

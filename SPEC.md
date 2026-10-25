@@ -610,7 +610,7 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 - Next.js 16 : le middleware s'appelle désormais `proxy.ts`.
 - `contacts` et `replies` ont une colonne `user_id` (RLS plus simple et plus sûre).
 - `applications` : colonnes `scheduled_for` (file d'envoi traitée chaque minute, via `pg_cron` Supabase au Sprint 3), `followup_subject`, `followup_body`, `send_error`.
-- L'enum du statut Gmail s'appelle `google_connection_state` (le nom `google_connection_status` est pris par la vue).
+- La vue `google_connection_status` est remplacée par une fonction `google_connection_status()` (appel `supabase.rpc`), mêmes garanties, sans alerte du linter Supabase. L'enum du statut Gmail s'appelle `google_connection_state`.
 - `send_log` est conservé si une candidature est supprimée (sinon on pourrait contourner le quota).
 - Le fichier CV dans Storage doit être supprimé explicitement lors de la suppression de compte (pas de cascade SQL vers Storage).
 - Fournisseur LLM par défaut : Anthropic. Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.

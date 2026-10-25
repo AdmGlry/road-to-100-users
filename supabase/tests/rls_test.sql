@@ -343,6 +343,85 @@ begin
 end
 $$;
 
+-- -----------------------------------------------------------------------------
+-- Sprint 2 (20261025020000_hunter_search.sql): new lead / search columns
+-- -----------------------------------------------------------------------------
+do $$
+begin
+  if (select progress from public.searches
+       where id = '50000000-0000-4000-8000-00000000000a') <> '{}'::jsonb then
+    raise exception 'FAIL: searches.progress default';
+  end if;
+  begin
+    update public.searches set progress = '[]'::jsonb
+     where id = '50000000-0000-4000-8000-00000000000a';
+    raise exception 'FAIL: non-object searches.progress accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    update public.leads set prefilter_score = 101
+     where id = '1e000000-0000-4000-8000-00000000000a';
+    raise exception 'FAIL: prefilter_score > 100 accepted';
+  exception when check_violation then null;
+  end;
+  raise notice 'PASS: hunter columns defaults and checks';
+end
+$$;
+
+set role authenticated;
+set request.jwt.claim.sub = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+do $$
+declare
+  n int;
+begin
+  -- Progress / error updates on own search (what runSearch does with the user client).
+  update public.searches
+     set progress = '{"step": "scoring", "done": 1, "total": 6}', error = null
+   where id = '50000000-0000-4000-8000-00000000000a';
+  if (select progress ->> 'step' from public.searches
+       where id = '50000000-0000-4000-8000-00000000000a') <> 'scoring' then
+    raise exception 'FAIL: A cannot update own search progress';
+  end if;
+
+  -- Lead upsert on (user_id, company_id): updates the existing row, keeps its status.
+  update public.leads set status = 'selected' where id = '1e000000-0000-4000-8000-00000000000a';
+  insert into public.leads (user_id, search_id, company_id, fit_score, prefilter_score,
+                            distance_km, establishment_city)
+  values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '50000000-0000-4000-8000-00000000000a',
+          'c0000000-0000-4000-8000-00000000000a', 91, 70, 3.2, 'NANTES')
+  on conflict (user_id, company_id) do update
+    set fit_score = excluded.fit_score, prefilter_score = excluded.prefilter_score,
+        distance_km = excluded.distance_km, establishment_city = excluded.establishment_city;
+  select count(*) into n from public.leads;
+  if n <> 1 then
+    raise exception 'FAIL: lead upsert duplicated rows (% leads)', n;
+  end if;
+  if (select status from public.leads) <> 'selected'
+     or (select fit_score from public.leads) <> 91
+     or (select establishment_city from public.leads) <> 'NANTES' then
+    raise exception 'FAIL: lead upsert did not merge as expected';
+  end if;
+
+  -- Still cannot touch B's search.
+  update public.searches set error = 'pwned' where id = '50000000-0000-4000-8000-00000000000b';
+  raise notice 'PASS: A updates own search progress and upserts own leads without duplicates';
+end
+$$;
+
+reset request.jwt.claim.sub;
+reset role;
+
+do $$
+begin
+  if (select error from public.searches where id = '50000000-0000-4000-8000-00000000000b')
+     is not null then
+    raise exception 'FAIL: A modified B''s search';
+  end if;
+  raise notice 'PASS: B''s search untouched';
+end
+$$;
+
 -- GDPR: deleting auth user A removes ALL of A's rows.
 delete from auth.users where id = :user_a;
 

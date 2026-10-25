@@ -1,0 +1,52 @@
+{
+  "results": [
+    {
+      "siren": "867890123",
+      "nom_complet": "ANGERS DIGITAL",
+      "activite_principale": "62.01Z",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "21",
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "86789012300014",
+          "adresse": "1 BOULEVARD FOCH 49100 ANGERS",
+          "code_postal": "49100",
+          "libelle_commune": "ANGERS",
+          "latitude": "47.4710",
+          "longitude": "-0.5520",
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    {
+      "siren": "878901234",
+      "nom_complet": "SAINT-NAZAIRE CONSULTING",
+      "activite_principale": "70.22Z",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "11",
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "87890123400011",
+          "adresse": "4 AVENUE DE LA REPUBLIQUE 44600 SAINT-NAZAIRE",
+          "code_postal": "44600",
+          "libelle_commune": "SAINT-NAZAIRE",
+          "latitude": "47.2735",
+          "longitude": "-2.2138",
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    }
+  ],
+  "total_results": 2,
+  "page": 1,
+  "per_page": 25,
+  "total_pages": 1
+}

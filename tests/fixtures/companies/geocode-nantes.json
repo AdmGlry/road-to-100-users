@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-1.5534, 47.2173] },
+      "properties": {
+        "label": "Nantes",
+        "score": 0.97,
+        "id": "44109",
+        "type": "municipality",
+        "name": "Nantes",
+        "postcode": "44000",
+        "citycode": "44109",
+        "x": 355675.06,
+        "y": 6689357.42,
+        "population": 320732,
+        "city": "Nantes",
+        "context": "44, Loire-Atlantique, Pays de la Loire",
+        "importance": 0.75
+      }
+    }
+  ],
+  "query": "Nantes"
+}

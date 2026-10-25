@@ -44,3 +44,6 @@ next-env.d.ts
 supabase/.temp
 supabase/.branches
 !.env.example
+
+# QA screenshots
+qa-artifacts/

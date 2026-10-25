@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { ProfileWorkspace } from "@/components/profile/profile-workspace";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { loadRoleSuggestions } from "@/lib/profile/roles";
 import { loadEditableProfile } from "@/lib/profile/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,9 +13,10 @@ export const metadata: Metadata = { title: "Profil · Spontané" };
 /**
  * Applies to the Server Actions invoked from this page too (Next.js docs:
  * route segment config `maxDuration`): the CV analysis (PDF text + LLM)
- * targets < 20 s, 60 s leaves headroom on Vercel.
+ * targets < 20 s, but the "Métiers suggérés" coach (suggest_roles, up to 2
+ * attempts × 20–60 s on free OpenRouter models) needs more headroom.
  */
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export default function ProfilePage() {
   return (
@@ -38,7 +40,10 @@ async function ProfileLoader() {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const { profile, hasCv, updatedAt } = await loadEditableProfile(supabase, user.id);
+  const [{ profile, hasCv, updatedAt }, roleSuggestions] = await Promise.all([
+    loadEditableProfile(supabase, user.id),
+    loadRoleSuggestions(supabase, user.id),
+  ]);
 
   return (
     <ProfileWorkspace
@@ -46,6 +51,7 @@ async function ProfileLoader() {
       initialProfile={profile}
       hasCv={hasCv}
       updatedAt={updatedAt}
+      initialRoleSuggestions={roleSuggestions}
     />
   );
 }

@@ -37,6 +37,12 @@ La spécification complète est dans `SPEC.md`. **Lis-la avant toute tâche.** N
 - Suppression de compte = suppression de toutes les données (profil, CV, mails, tokens) et révocation du token Google.
 - Ne jamais logger le contenu des mails, des CV ou des tokens.
 
+## Ordinateur et mobile
+
+- L'application est utilisée sur PC **et** sur téléphone : chaque écran doit être conçu mobile d'abord et rester confortable sur grand écran (testé au minimum en 390×844 et 1440×900).
+- Pas de défilement horizontal, cibles tactiles d'au moins 40 px, barres fixes qui ne masquent pas le contenu, formulaires utilisables au clavier.
+- Avant de fusionner un sprint, lancer l'agent `qa-tester` (`.claude/agents/qa-tester.md`).
+
 ## Qualité
 
 - Chaque sprint se termine avec : `npm run lint`, `npm run typecheck` et `npm test` qui passent.

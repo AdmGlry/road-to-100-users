@@ -56,6 +56,23 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>
+            <h2>Chasseur</h2>
+          </CardTitle>
+          <CardDescription>
+            Trouve des entreprises près de chez toi, notées selon ton profil, et sélectionne celles
+            à qui envoyer une candidature spontanée.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link href="/hunter">Lancer une recherche</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
             <h2>Ce qui arrive</h2>
           </CardTitle>
           <CardDescription>Spontané se construit sprint par sprint.</CardDescription>

@@ -64,7 +64,7 @@ export function TagInput({
     <div className="flex flex-col gap-2">
       <div
         className={cn(
-          "border-input flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-md border bg-transparent px-2 py-1.5 shadow-xs transition-[color,box-shadow]",
+          "border-input flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border bg-transparent px-2 py-1.5 shadow-xs transition-[color,box-shadow]",
           "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
           disabled && "cursor-not-allowed opacity-50",
         )}
@@ -74,15 +74,17 @@ export function TagInput({
             {value.map((tag, index) => (
               <li
                 key={`${tag}-${index}`}
-                className="bg-secondary text-secondary-foreground inline-flex max-w-full items-center gap-1 rounded-md py-0.5 pr-0.5 pl-2 text-sm"
+                className="bg-secondary text-secondary-foreground inline-flex max-w-full min-w-0 items-center gap-0.5 rounded-md py-0.5 pr-0.5 pl-2 text-sm"
               >
-                <span className="truncate">{tag}</span>
+                <span className="truncate" title={tag}>
+                  {tag}
+                </span>
                 <button
                   type="button"
                   onClick={() => remove(index)}
                   disabled={disabled}
                   aria-label={`Retirer ${tag}`}
-                  className="hover:bg-background/70 focus-visible:ring-ring/50 inline-flex size-6 shrink-0 items-center justify-center rounded-sm outline-none focus-visible:ring-[3px]"
+                  className="hover:bg-background/70 focus-visible:ring-ring/50 active:bg-background/70 inline-flex size-7 shrink-0 items-center justify-center rounded-sm outline-none select-none focus-visible:ring-[3px] pointer-coarse:size-10"
                 >
                   <XIcon aria-hidden="true" className="size-3.5" />
                 </button>
@@ -115,7 +117,7 @@ export function TagInput({
           autoComplete="off"
           placeholder={full ? `Maximum ${max} atteint` : placeholder}
           aria-describedby={[describedBy, usageId].filter(Boolean).join(" ")}
-          className="placeholder:text-muted-foreground h-7 min-w-32 flex-1 bg-transparent px-1 text-base outline-none disabled:cursor-not-allowed md:text-sm"
+          className="placeholder:text-muted-foreground h-8 min-w-32 flex-1 bg-transparent px-1 text-base outline-none disabled:cursor-not-allowed md:text-sm pointer-coarse:h-10 pointer-coarse:md:text-base"
         />
       </div>
       <p id={usageId} className="text-muted-foreground text-xs">

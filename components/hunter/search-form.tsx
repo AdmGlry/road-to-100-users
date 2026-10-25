@@ -86,8 +86,7 @@ export function SearchForm({
       <fieldset disabled={disabled || busy} className="flex min-w-0 flex-col gap-5">
         <legend className="sr-only">Critères de recherche</legend>
 
-        {/* Larger tap targets for TagInput (its field and × buttons). */}
-        <div className="grid gap-5 lg:grid-cols-2 [&_input[type=text]]:h-9 [&_li_button]:size-8">
+        <div className="grid gap-5 lg:grid-cols-2">
           <Field
             id={fid("roles")}
             label="Postes visés"
@@ -138,6 +137,7 @@ export function SearchForm({
                   if (e.target.value.trim()) setErrors((er) => ({ ...er, city: undefined }));
                 }}
                 autoComplete="address-level2"
+                enterKeyHint="search"
                 aria-invalid={errors.city ? true : undefined}
                 aria-describedby={describedBy}
                 placeholder="ex. Nantes"
@@ -170,6 +170,7 @@ export function SearchForm({
                     id={fid("radius")}
                     type="number"
                     inputMode="numeric"
+                    enterKeyHint="search"
                     min={RADIUS_MIN_KM}
                     max={RADIUS_MAX_KM}
                     step={5}
@@ -245,7 +246,7 @@ export function SearchForm({
           {busy ? "Lancement…" : submitLabel}
         </Button>
         <p className="text-muted-foreground text-xs">
-          Compte 1 à 3 minutes. Tu peux quitter la page, la recherche continue.
+          Compte 1&nbsp;à&nbsp;3&nbsp;minutes. Tu peux quitter la page, la recherche continue.
         </p>
       </div>
     </form>

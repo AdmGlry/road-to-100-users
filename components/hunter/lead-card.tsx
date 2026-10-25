@@ -28,6 +28,9 @@ const LOCKED_LABELS: Partial<Record<Lead["status"], string>> = {
   sent: "Candidature envoyée",
 };
 
+/** Above this length a reason may exceed its 3-line clamp: "Voir plus" shows it in full. */
+const REASON_CLAMP_CHARS = 120;
+
 /** One company proposed to the student (SPEC §7.3). */
 export function LeadCard({
   lead,
@@ -51,8 +54,11 @@ export function LeadCard({
         role="status"
         className="bg-muted/50 flex h-full flex-wrap items-center justify-between gap-2 rounded-xl border border-dashed px-4 py-3 text-sm"
       >
-        <span className="text-muted-foreground min-w-0">
-          <span className="text-foreground font-medium">{lead.name}</span> ignorée.
+        <span className="text-muted-foreground min-w-0 wrap-anywhere">
+          <span className="text-foreground font-medium" dir="auto" translate="no">
+            {lead.name}
+          </span>{" "}
+          ignorée.
         </span>
         <Button variant="outline" size="sm" onClick={onUndoDismiss} className="h-10">
           Annuler
@@ -68,7 +74,11 @@ export function LeadCard({
   const companyUrl = annuaireUrl(lead.siren);
   const locked = LOCKED_LABELS[lead.status];
   const selected = lead.status === "selected";
-  const hasMore = reasons.length > 3 || Boolean(companyUrl) || Boolean(lead.naf_label);
+  const hasMore =
+    reasons.length > 3 ||
+    reasons.some((r) => r.length > REASON_CLAMP_CHARS) ||
+    Boolean(companyUrl) ||
+    Boolean(lead.naf_label);
 
   return (
     <article
@@ -80,20 +90,32 @@ export function LeadCard({
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 id={titleId} className="leading-snug font-semibold break-words">
+          {/* Company names are identifiers: wrapped in full (never truncated),
+              breaking anywhere only when a word is longer than the column. */}
+          <h3
+            id={titleId}
+            dir="auto"
+            translate="no"
+            className="leading-snug font-semibold wrap-anywhere"
+          >
             {lead.name}
           </h3>
           {lead.naf_label && (
             <p className="text-muted-foreground mt-0.5 flex items-start gap-1.5 text-sm">
               <BuildingIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
               {/* line-clamp on the text only: on the <p> it would override `flex`. */}
-              <span className={cn("min-w-0", !expanded && "line-clamp-2")}>{lead.naf_label}</span>
+              <span
+                className={cn("min-w-0 wrap-anywhere", !expanded && "line-clamp-2")}
+                title={expanded ? undefined : lead.naf_label}
+              >
+                {lead.naf_label}
+              </span>
             </p>
           )}
         </div>
         <span
           className={cn(
-            "inline-flex shrink-0 items-center rounded-md border px-2 py-1 text-xs font-semibold whitespace-nowrap",
+            "inline-flex shrink-0 items-center rounded-md border px-2 py-1 text-xs font-semibold whitespace-nowrap tabular-nums",
             SCORE_BAND_CLASSES[band],
           )}
         >
@@ -102,20 +124,24 @@ export function LeadCard({
         </span>
       </div>
 
-      <ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        {(lead.city || distance) && (
-          <li className="flex items-center gap-1.5">
-            <MapPinIcon aria-hidden="true" className="size-3.5" />
-            {[lead.city, distance].filter(Boolean).join(" · ")}
-          </li>
-        )}
-        {lead.headcount_label && (
-          <li className="flex items-center gap-1.5">
-            <UsersIcon aria-hidden="true" className="size-3.5" />
-            {lead.headcount_label}
-          </li>
-        )}
-      </ul>
+      {(lead.city || distance || lead.headcount_label) && (
+        <ul className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {(lead.city || distance) && (
+            <li className="flex min-w-0 items-start gap-1.5">
+              <MapPinIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+              <span className="min-w-0 wrap-anywhere">
+                {[lead.city, distance].filter(Boolean).join(" · ")}
+              </span>
+            </li>
+          )}
+          {lead.headcount_label && (
+            <li className="flex min-w-0 items-start gap-1.5">
+              <UsersIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+              <span className="min-w-0 tabular-nums">{lead.headcount_label}</span>
+            </li>
+          )}
+        </ul>
+      )}
 
       {shownReasons.length > 0 && (
         <ul className="flex flex-col gap-1 text-sm" aria-label="Pourquoi cette entreprise">
@@ -124,7 +150,10 @@ export function LeadCard({
               <span aria-hidden="true" className="text-muted-foreground">
                 •
               </span>
-              <span className="min-w-0">{reason}</span>
+              {/* Clamped in the card (stable heights); full text on "Voir plus". */}
+              <span className={cn("min-w-0 wrap-anywhere", !expanded && "line-clamp-3")}>
+                {reason}
+              </span>
             </li>
           ))}
         </ul>
@@ -151,7 +180,7 @@ export function LeadCard({
         {locked ? (
           <Badge variant="secondary">{locked}</Badge>
         ) : (
-          <label className="hover:bg-accent -ml-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium">
+          <label className="hover:bg-accent -ml-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium select-none">
             <Checkbox
               checked={selected}
               onChange={(e) => onToggleSelect(e.target.checked)}

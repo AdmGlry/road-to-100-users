@@ -101,7 +101,7 @@ async function Greeting() {
   const user = await getCurrentUser();
   return (
     <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold tracking-tight break-words">
+      <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">
         Bonjour {user?.email ?? ""}
       </h1>
       <p className="text-muted-foreground">Bienvenue sur Spontané, ton compte est prêt.</p>

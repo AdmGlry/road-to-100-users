@@ -108,7 +108,7 @@ export function HunterWorkspace({
       setAttempt((a) => a + 1);
       setPhase({ kind: "running", searchId: result.searchId });
       requestAnimationFrame(() =>
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        resultsRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" }),
       );
     } catch {
       setStartError("Connexion perdue : la recherche n'a pas pu être lancée. Réessaie.");
@@ -120,7 +120,7 @@ export function HunterWorkspace({
   const openForm = () => {
     setFormOpen(true);
     requestAnimationFrame(() => {
-      formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      formCardRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
       formCardRef.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
     });
   };
@@ -138,13 +138,17 @@ export function HunterWorkspace({
               onClick={() => (formOpen ? setFormOpen(false) : openForm())}
               aria-expanded={formOpen}
               aria-controls={formRegionId}
-              className="focus-visible:ring-ring/50 -m-2 flex min-h-10 items-center justify-between gap-3 rounded-md p-2 text-left outline-none focus-visible:ring-[3px]"
+              className="focus-visible:ring-ring/50 -m-2 flex min-h-10 min-w-0 items-center justify-between gap-3 rounded-md p-2 text-left outline-none focus-visible:ring-[3px]"
             >
-              <span className="flex flex-col gap-1">
+              <span className="flex min-w-0 flex-col gap-1">
                 <CardTitle>
                   <h2 className="text-lg">Critères de recherche</h2>
                 </CardTitle>
-                <CardDescription className="break-words">
+                {/* Collapsed summary: 2 lines max, the full criteria are one tap away. */}
+                <CardDescription
+                  className={cn("wrap-anywhere", !formOpen && "line-clamp-2")}
+                  title={formOpen ? undefined : summarizeParams(summary)}
+                >
                   {formOpen ? "Modifie tes critères puis relance." : summarizeParams(summary)}
                 </CardDescription>
               </span>
@@ -237,6 +241,11 @@ export function HunterWorkspace({
       </div>
     </div>
   );
+}
+
+/** Programmatic scrolls jump instead of gliding when the user asked for less motion. */
+function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 }
 
 /** "Business Analyst, Chef de projet · Nantes · 30 km · Alternance" */

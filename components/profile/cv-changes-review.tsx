@@ -68,30 +68,29 @@ export function CvChangesReview({
           </p>
         </div>
 
-        <ul className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-6">
+        <ul className="flex flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-4 sm:p-6">
           {changes.map((change) => {
             const checkboxId = `${titleId}-${change.field}`;
             const current = formatFieldValue(change.field, change.current);
             const proposed = formatFieldValue(change.field, change.proposed);
             return (
               <li key={change.field} className="rounded-lg border p-3 sm:p-4">
-                <div className="flex items-start gap-3">
+                {/* Checkbox + field name share one ≥ 40 px tap target. */}
+                <label
+                  htmlFor={checkboxId}
+                  className="-m-1 flex min-h-10 cursor-pointer items-center gap-3 rounded-md p-1 text-sm font-medium select-none"
+                >
                   <Checkbox
                     id={checkboxId}
                     checked={accepted.has(change.field)}
                     onChange={(e) => toggle(change.field, e.target.checked)}
                     disabled={pending}
-                    className="mt-0.5"
                   />
-                  <div className="flex min-w-0 flex-1 flex-col gap-3">
-                    <label htmlFor={checkboxId} className="text-sm font-medium">
-                      {change.label}
-                    </label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <ValueBlock title="Actuel" lines={current} />
-                      <ValueBlock title="Dans le nouveau CV" lines={proposed} highlight />
-                    </div>
-                  </div>
+                  {change.label}
+                </label>
+                <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:pl-8">
+                  <ValueBlock title="Actuel" lines={current} />
+                  <ValueBlock title="Dans le nouveau CV" lines={proposed} highlight />
                 </div>
               </li>
             );
@@ -132,18 +131,20 @@ function ValueBlock({
   highlight?: boolean;
 }) {
   return (
-    <div className={highlight ? "bg-secondary/60 rounded-md p-2" : "rounded-md p-2"}>
+    <div
+      className={highlight ? "bg-secondary/60 min-w-0 rounded-md p-2" : "min-w-0 rounded-md p-2"}
+    >
       <p className="text-muted-foreground mb-1 text-xs font-medium tracking-wide uppercase">
         {title}
       </p>
       {lines.length === 0 ? (
         <p className="text-muted-foreground text-sm italic">(vide)</p>
       ) : lines.length === 1 ? (
-        <p className="text-sm break-words whitespace-pre-line">{lines[0]}</p>
+        <p className="text-sm wrap-anywhere whitespace-pre-line">{lines[0]}</p>
       ) : (
         <ul className="list-disc pl-5 text-sm">
           {lines.map((line, i) => (
-            <li key={i} className="break-words">
+            <li key={i} className="wrap-anywhere">
               {line}
             </li>
           ))}

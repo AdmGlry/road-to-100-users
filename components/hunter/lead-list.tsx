@@ -208,9 +208,15 @@ export function LeadList({
           onEditSearch={onEditSearch}
         />
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2" aria-label="Liste des entreprises">
+        // grid-cols-1 = minmax(0, 1fr): an unbreakable company name cannot widen
+        // the column (an implicit `auto` track would grow every card past the screen).
+        <ul
+          // Keyboard focus scrolls controls clear of the sticky phone bar.
+          className="grid grid-cols-1 gap-3 md:grid-cols-2 max-md:[&_:is(a,button,input)]:scroll-mb-40"
+          aria-label="Liste des entreprises"
+        >
           {shown.map((lead) => (
-            <li key={lead.id}>
+            <li key={lead.id} className="min-w-0">
               <LeadCard
                 lead={lead}
                 onToggleSelect={(selected) => onToggleSelect(lead, selected)}
@@ -299,7 +305,10 @@ function FiltersBar({
         </NativeSelect>
       </div>
       {busy && (
-        <p className="text-muted-foreground col-span-3 flex items-center gap-1.5 text-xs sm:h-10">
+        <p
+          role="status"
+          className="text-muted-foreground col-span-full flex items-center gap-1.5 text-xs sm:h-10"
+        >
           <LoaderCircleIcon aria-hidden="true" className="size-3.5 animate-spin" />
           Mise à jour…
         </p>
@@ -371,7 +380,7 @@ function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "de
       <div className="hidden shrink-0 flex-col items-end gap-1 md:flex">
         <div className="flex items-center gap-3">
           <p className="text-sm whitespace-nowrap">
-            <span className="font-semibold">{count}</span> {label}
+            <span className="font-semibold tabular-nums">{count}</span> {label}
           </p>
           {button}
         </div>
@@ -382,10 +391,10 @@ function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "de
 
   // Phone: sticky (not fixed) bottom bar, so it never covers the last card.
   return (
-    <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky bottom-0 z-10 -mx-4 mt-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+    <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky bottom-0 z-10 -mx-4 mt-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 md:hidden">
       <div className="flex flex-col gap-1.5">
         <p className="text-sm">
-          <span className="font-semibold">{count}</span> {label}
+          <span className="font-semibold tabular-nums">{count}</span> {label}
         </p>
         {button}
         {note}
@@ -396,7 +405,7 @@ function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "de
 
 export function LeadListSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2" aria-busy="true">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2" aria-busy="true">
       <p className="sr-only" role="status">
         Chargement des entreprises…
       </p>

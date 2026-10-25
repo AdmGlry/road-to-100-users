@@ -153,7 +153,7 @@ export function SearchProgress({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p className="text-sm">{errorMessage}</p>
+          <p className="text-sm wrap-anywhere">{errorMessage}</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button onClick={onRetry} disabled={retrying} className="h-10 w-full sm:w-fit">
               {retrying ? (
@@ -198,7 +198,7 @@ export function SearchProgress({
             />
           </div>
           {/* Announces step changes (not every percent) to screen readers. */}
-          <p className="text-muted-foreground text-sm" aria-live="polite">
+          <p className="text-muted-foreground text-sm tabular-nums" aria-live="polite">
             {currentLabel}…
           </p>
         </div>

@@ -207,7 +207,7 @@ export function CvUpload({
         )}
       </div>
       {phase.kind === "error" && (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-destructive text-sm wrap-anywhere">
           {phase.message}
         </p>
       )}

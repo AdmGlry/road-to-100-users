@@ -158,7 +158,7 @@ export function RoleSuggestions({
       <CardHeader>
         <div className="flex items-center gap-3">
           <CoachAvatar />
-          <div className="flex flex-col gap-1">
+          <div className="flex min-w-0 flex-col gap-1">
             <CardTitle>
               <h2 id={headingId} className="text-lg">
                 Métiers pour toi
@@ -307,7 +307,7 @@ function CoachBubble({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-start gap-2">
       <span className="sr-only">Coach :</span>
-      <div className="bg-muted max-w-[90%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm sm:max-w-[80%]">
+      <div className="bg-muted max-w-[90%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm wrap-anywhere sm:max-w-[80%]">
         {children}
       </div>
     </li>
@@ -318,7 +318,7 @@ function StudentBubble({ children }: { children: ReactNode }) {
   return (
     <li className="flex justify-end">
       <span className="sr-only">Toi :</span>
-      <div className="bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm sm:max-w-[70%]">
+      <div className="bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm wrap-anywhere sm:max-w-[70%]">
         {children}
       </div>
     </li>
@@ -359,7 +359,7 @@ function RoleCard({
   return (
     <article aria-labelledby={titleId} className="flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <h3 id={titleId} className="font-medium">
+        <h3 id={titleId} className="min-w-0 font-medium wrap-anywhere">
           {role.title}
         </h3>
         <Badge variant={FIT_BADGE[role.fit]}>
@@ -369,15 +369,17 @@ function RoleCard({
       </div>
 
       <ul className="text-muted-foreground flex list-disc flex-col gap-1 pl-5 text-sm">
-        {role.why.map((reason) => (
-          <li key={reason}>{reason}</li>
+        {role.why.map((reason, i) => (
+          <li key={i} className="wrap-anywhere">
+            {reason}
+          </li>
         ))}
       </ul>
 
       {role.gap && (
         <div className="bg-accent/60 border-border rounded-md border-l-4 px-3 py-2 text-sm">
           <p className="font-medium">Point d&apos;attention</p>
-          <p className="text-muted-foreground">{role.gap}</p>
+          <p className="text-muted-foreground wrap-anywhere">{role.gap}</p>
         </div>
       )}
 
@@ -385,9 +387,12 @@ function RoleCard({
         <div className="flex flex-col gap-1">
           <span className="sr-only">Secteurs où ce métier est courant :</span>
           <ul className="flex flex-wrap gap-1.5" aria-label="Secteurs">
-            {role.sectors.map((sector) => (
-              <li key={sector}>
-                <Badge variant="secondary" className="font-normal">
+            {role.sectors.map((sector, i) => (
+              <li key={i} className="max-w-full min-w-0">
+                <Badge
+                  variant="secondary"
+                  className="max-w-full font-normal wrap-anywhere whitespace-normal"
+                >
                   {sector}
                 </Badge>
               </li>
@@ -449,22 +454,23 @@ function QuestionBubble({
       <div className="flex items-start">
         <p
           id={legendId}
-          className="bg-muted max-w-[90%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm sm:max-w-[80%]"
+          className="bg-muted max-w-[90%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm wrap-anywhere sm:max-w-[80%]"
         >
           <span className="sr-only">Coach : </span>
           {question.question}
         </p>
       </div>
       <div role="group" aria-labelledby={legendId} className="flex flex-wrap gap-2 pl-2">
-        {question.options.map((option) => {
+        {question.options.map((option, i) => {
           const active = value === option;
           return (
             <Button
-              key={option}
+              key={i}
               type="button"
               size="sm"
               variant={active ? "default" : "outline"}
-              className="h-10 rounded-full"
+              // Long options wrap inside the chip instead of running off the screen.
+              className="h-auto min-h-10 max-w-full rounded-[1.25rem] py-2 text-left wrap-anywhere whitespace-normal pointer-coarse:h-auto"
               aria-pressed={active}
               disabled={disabled}
               onClick={() => onChange(option)}

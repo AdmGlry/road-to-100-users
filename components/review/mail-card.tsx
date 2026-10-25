@@ -107,7 +107,7 @@ export function MailCard({
   const hasContact = item.contact !== null && looksLikeEmail(item.contact.email);
   const busy = pending !== null;
   const dirty = subject.trim() !== item.subject.trim() || body.trim() !== item.body.trim();
-  const showPicker = editable && (pickerOpen || (!item.contact && phase !== "sent"));
+  const showPicker = editable && (pickerOpen || !item.contact);
 
   const run = async (
     kind: Exclude<Pending, null>,

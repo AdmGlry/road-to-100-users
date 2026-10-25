@@ -78,8 +78,8 @@ const COVERAGE_MIN = 0.8;
 export function buildProfileCorpus(profile: EditableProfile): string {
   const parts: (string | null | undefined)[] = [
     profile.full_name,
-    profile.phone,
-    profile.phone ? profile.phone.replace(/\D+/g, "") : null,
+    // Phone digits only as one compact token: "06 12 34…" must not make "12" a known figure.
+    profile.phone ? nationalDigits(profile.phone) : null,
     profile.city,
     profile.school,
     profile.degree,
@@ -182,6 +182,16 @@ export function findBannedWords(text: string): string[] {
   return BANNED.filter(([re]) => re.test(t)).map(([, w]) => w);
 }
 
+const PHONE_RE = /(?:\+33\s?|0033\s?|\b0)[1-9](?:[\s.-]?\d{2}){4}\b/g;
+
+/** "+33 6 12 34 56 78" / "06.12.34.56.78" → "0612345678". */
+function nationalDigits(phone: string): string {
+  const d = phone.replace(/\D+/g, "");
+  if (d.startsWith("0033")) return `0${d.slice(4)}`;
+  if (d.startsWith("33") && d.length === 11) return `0${d.slice(2)}`;
+  return d;
+}
+
 /** Numbers always allowed in a mail ("échange de 15 minutes"). */
 const ALLOWED_NUMBERS = new Set(["15"]);
 
@@ -248,8 +258,17 @@ export function analyzeMail(
   const corpus = new Corpus(
     `${buildProfileCorpus(profile)} ${normalizeForMatch(context.allowedText ?? "")}`,
   );
+  // Phone numbers: accepted only when they are the student's own phone.
+  const ownPhone = profile.phone ? nationalDigits(profile.phone) : null;
+  const unknownPhones: string[] = [];
+  const withoutPhones = `${mail.subject} ${mail.body}`.replace(PHONE_RE, (m) => {
+    const digits = nationalDigits(m);
+    if (digits !== ownPhone) unknownPhones.push(digits);
+    return " ";
+  });
   const numbers = [
-    ...new Set(normalizeForMatch(`${mail.subject} ${mail.body}`).match(/\d+/g) ?? []),
+    ...unknownPhones,
+    ...new Set(normalizeForMatch(withoutPhones).match(/\d+/g) ?? []),
   ].filter((n) => !ALLOWED_NUMBERS.has(n) && !corpus.hasNumber(n));
   if (numbers.length > 0) {
     problems.push({

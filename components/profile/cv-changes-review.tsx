@@ -34,7 +34,12 @@ export function CvChangesReview({
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (dialog && !dialog.open) dialog.showModal();
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+      // When the list overflows, Chrome would focus the scroll container
+      // (and draw the focus ring across the dialog): start on the first choice.
+      dialog.querySelector<HTMLInputElement>("input[type=checkbox]")?.focus();
+    }
     return () => dialog?.close();
   }, []);
 
@@ -56,7 +61,7 @@ export function CvChangesReview({
         if (!pending) onDismiss();
       }}
       // True overlay: the one place an (ink-tinted, offset) shadow is allowed.
-      className="motion-dialog bg-background text-foreground m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl rounded-xl border p-0 shadow-[0_16px_48px_-12px_rgb(23_27_52/0.35)] backdrop:bg-[rgb(15_18_38/0.55)]"
+      className="motion-dialog bg-background text-foreground dark:bg-card m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl rounded-xl border p-0 shadow-[0_16px_48px_-12px_rgb(23_27_52/0.35)] backdrop:bg-[rgb(15_18_38/0.55)] dark:backdrop:bg-black/75"
     >
       <div className="flex max-h-[90dvh] flex-col">
         <div className="flex flex-col gap-1.5 border-b p-4 sm:p-6">

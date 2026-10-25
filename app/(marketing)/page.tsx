@@ -66,7 +66,7 @@ export default function LandingPage() {
         <nav aria-label="Navigation" className="flex items-center gap-2 sm:gap-4">
           <a
             href="#etapes"
-            className="text-muted-foreground hover:text-foreground hidden h-10 items-center rounded-sm px-2 text-sm font-medium transition-colors sm:inline-flex"
+            className="text-muted-foreground hover:text-foreground hidden h-10 items-center rounded-sm px-2 text-sm font-medium transition-[color] sm:inline-flex"
           >
             Comment ça marche
           </a>
@@ -99,7 +99,7 @@ export default function LandingPage() {
               </Button>
               <a
                 href="#etapes"
-                className="text-primary decoration-primary/40 hover:decoration-primary inline-flex h-11 items-center justify-center rounded-sm text-base font-semibold underline underline-offset-4 transition-colors"
+                className="text-primary decoration-primary/40 hover:decoration-primary inline-flex h-11 items-center justify-center rounded-sm text-base font-semibold underline underline-offset-4 transition-[color,text-decoration-color]"
               >
                 Voir les étapes
               </a>
@@ -262,7 +262,7 @@ function ExampleMail() {
               mon stage de 3 mois chez un distributeur de matériel agricole
             </Source>
             , j&apos;ai automatisé le reporting mensuel sous Excel. Je cherche une alternance de 12
-            mois à partir de septembre. Auriez-vous un moment pour en parler ?
+            mois à partir de septembre. Auriez-vous un moment pour en parler ?
           </p>
           <p className="mt-3">Léa Martin</p>
         </div>

@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 /** Placeholder for modules delivered in a later sprint (SPEC §13). */
 export function ComingSoon({
   title,
-  sprint,
   description,
 }: {
   title: string;
-  sprint: number;
+  /** Planned sprint (SPEC §13); kept for reference, not shown to students. */
+  sprint?: number;
   description: string;
 }) {
   return (
@@ -24,7 +24,7 @@ export function ComingSoon({
             Bientôt disponible
           </h2>
           <p className="text-muted-foreground max-w-[60ch] leading-relaxed">{description}</p>
-          <p className="text-muted-foreground text-sm">Prévu au sprint {sprint}.</p>
+          <p className="text-muted-foreground text-sm">Arrive dans une prochaine version.</p>
         </div>
         <Button asChild variant="outline">
           <Link href="/hunter">Aller au Chasseur</Link>

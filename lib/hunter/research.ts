@@ -15,7 +15,11 @@
  * Never throws, never invents.
  */
 import type { CompanyFacts, CompanyInsight } from "@/lib/hunter/application-types";
-import { getWebSearchClient, type WebResult, type WebSearchClient } from "@/lib/integrations/websearch";
+import {
+  getWebSearchClient,
+  type WebResult,
+  type WebSearchClient,
+} from "@/lib/integrations/websearch";
 import { generateJson, type LlmProvider, type LlmUsageEvent } from "@/lib/llm/client";
 import {
   buildCompanyInsightPrompt,
@@ -50,7 +54,8 @@ export function activityInsight(company: CompanyFacts): CompanyInsight {
   const activity = company.naf_label?.trim();
   const city = company.city?.trim();
   let text: string;
-  if (activity && city) text = `${name} exerce dans le domaine « ${lowerFirst(activity)} » à ${city}.`;
+  if (activity && city)
+    text = `${name} exerce dans le domaine « ${lowerFirst(activity)} » à ${city}.`;
   else if (activity) text = `${name} exerce dans le domaine « ${lowerFirst(activity)} ».`;
   else if (city) text = `${name} est une entreprise implantée à ${city}.`;
   else text = `${name} est une entreprise française.`;
@@ -68,7 +73,9 @@ function urlKey(url: string): string | null {
 }
 
 const STOP = new Set(
-  "les des une pour avec dans sur par aux est son ses ces qui que dont plus elle ils leur leurs vient vers cette".split(" "),
+  "les des une pour avec dans sur par aux est son ses ces qui que dont plus elle ils leur leurs vient vers cette".split(
+    " ",
+  ),
 );
 
 /** Validates the model's answer against the results; returns the hook or null. */
@@ -94,7 +101,8 @@ export function validateInsight(
     .filter((t) => t.length >= 4 && !/\d/.test(t) && !STOP.has(t) && !nameTokens.has(t));
   if (words.length > 0) {
     const hits = words.filter(
-      (w) => sourceTokens.has(w) || sourceTokens.has(w.replace(/s$/, "")) || sourceTokens.has(`${w}s`),
+      (w) =>
+        sourceTokens.has(w) || sourceTokens.has(w.replace(/s$/, "")) || sourceTokens.has(`${w}s`),
     ).length;
     if (hits / words.length < MIN_SOURCE_OVERLAP) return null;
   }

@@ -288,7 +288,10 @@ export function domainNameMatch(domain: string, companyName: string): number {
   if (!label) return 0;
   const tokens = companyNameTokens(companyName);
   const compact = tokens.join("");
-  if (compact.length >= 4 && (label.includes(compact) || (label.length >= 4 && compact.includes(label)))) {
+  if (
+    compact.length >= 4 &&
+    (label.includes(compact) || (label.length >= 4 && compact.includes(label)))
+  ) {
     return 3;
   }
   if (tokens.some((t) => t.length >= 4 && label.includes(t))) return 2;

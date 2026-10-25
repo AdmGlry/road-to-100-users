@@ -57,7 +57,20 @@ const FRENCH_MONTHS = [
   "novembre",
   "decembre",
 ];
-const SHORT_MONTHS = ["janv", "fevr", "mars", "avr", "mai", "juin", "juil", "aout", "sept", "oct", "nov", "dec"];
+const SHORT_MONTHS = [
+  "janv",
+  "fevr",
+  "mars",
+  "avr",
+  "mai",
+  "juin",
+  "juil",
+  "aout",
+  "sept",
+  "oct",
+  "nov",
+  "dec",
+];
 
 const COVERAGE_MIN = 0.8;
 
@@ -84,7 +97,11 @@ export function buildProfileCorpus(profile: EditableProfile): string {
   if (m) {
     const month = Number(m[2]) - 1;
     if (month >= 0 && month < 12) {
-      parts.push(`${FRENCH_MONTHS[month]} ${m[1]}`, `${SHORT_MONTHS[month]} ${m[1]}`, `${m[2]}/${m[1]}`);
+      parts.push(
+        `${FRENCH_MONTHS[month]} ${m[1]}`,
+        `${SHORT_MONTHS[month]} ${m[1]}`,
+        `${m[2]}/${m[1]}`,
+      );
     }
   }
   return normalizeForMatch(parts.filter((p): p is string => !!p && p.trim() !== "").join(" \n "));

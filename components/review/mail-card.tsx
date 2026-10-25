@@ -176,6 +176,14 @@ export function MailCard({
     }
   };
 
+  const regenerate = async () => {
+    await run(
+      "regenerate",
+      () => regenerateApplicationAction(item.applicationId),
+      `Nouveau mail rédigé pour ${item.company.name}.`,
+    );
+  };
+
   const contact = item.contact;
   const name = contact ? contactName(contact) : null;
 
@@ -573,7 +581,7 @@ export function MailCard({
               {phase === "queued" ? "Annuler l'envoi" : "Retirer la validation"}
             </Button>
           )}
-          <div className="grid grid-cols-3 gap-1 sm:ml-auto sm:flex sm:items-center">
+          <div className="flex flex-wrap items-center gap-1 sm:ml-auto">
             <Button
               ref={editButtonRef}
               variant="ghost"
@@ -618,12 +626,4 @@ export function MailCard({
       )}
     </article>
   );
-
-  async function regenerate() {
-    await run(
-      "regenerate",
-      () => regenerateApplicationAction(item.applicationId),
-      `Nouveau mail rédigé pour ${item.company.name}.`,
-    );
-  }
 }

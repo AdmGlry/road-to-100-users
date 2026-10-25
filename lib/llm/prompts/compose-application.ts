@@ -20,8 +20,18 @@ export const MODEL_TIER: ModelTier = "smart";
 export const MAX_TOKENS = 1500;
 
 export const outputSchema = z.object({
-  subject: z.string().transform((v) => v.replace(/\s+/g, " ").replace(/^objet\s*:\s*/i, "").trim()),
-  body: z.string().transform((v) => v.replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").trim()),
+  subject: z.string().transform((v) =>
+    v
+      .replace(/\s+/g, " ")
+      .replace(/^objet\s*:\s*/i, "")
+      .trim(),
+  ),
+  body: z.string().transform((v) =>
+    v
+      .replace(/\r\n?/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim(),
+  ),
   claims_used: z
     .array(z.union([z.string(), z.number()]).transform((v) => String(v).trim()))
     .catch([])
@@ -99,7 +109,10 @@ function profileBlock(p: EditableProfile): string {
       const head = [clean(e.title, 150), e.company ? `chez ${clean(e.company, 120)}` : ""]
         .filter(Boolean)
         .join(" ");
-      const dates = [e.start, e.end].filter(Boolean).map((d) => clean(d, 40)).join(" – ");
+      const dates = [e.start, e.end]
+        .filter(Boolean)
+        .map((d) => clean(d, 40))
+        .join(" – ");
       const bullets = e.bullets
         .slice(0, 6)
         .map((b) => `    • ${clean(b, 250)}`)
@@ -109,9 +122,12 @@ function profileBlock(p: EditableProfile): string {
     .join("\n");
   const education = p.education
     .slice(0, 4)
-    .map((e) => `  - ${clean(e.degree, 150)}${e.school ? `, ${clean(e.school, 120)}` : ""}${
-      e.end ? ` (${clean(e.end, 40)})` : ""
-    }`)
+    .map(
+      (e) =>
+        `  - ${clean(e.degree, 150)}${e.school ? `, ${clean(e.school, 120)}` : ""}${
+          e.end ? ` (${clean(e.end, 40)})` : ""
+        }`,
+    )
     .join("\n");
   const languages = p.languages
     .slice(0, 6)
@@ -123,8 +139,20 @@ function profileBlock(p: EditableProfile): string {
     `Ville : ${or(p.city, "non précisée", 80)}`,
     `Formation actuelle : ${or(p.degree, "non précisée", 150)}`,
     `École : ${or(p.school, "non précisée", 150)}`,
-    `Rôles visés : ${p.target_roles.map((r) => clean(r, 80)).filter(Boolean).slice(0, 5).join(", ") || "non précisés"}`,
-    `Compétences : ${p.skills.map((s) => clean(s, 60)).filter(Boolean).slice(0, 30).join(", ") || "aucune indiquée"}`,
+    `Rôles visés : ${
+      p.target_roles
+        .map((r) => clean(r, 80))
+        .filter(Boolean)
+        .slice(0, 5)
+        .join(", ") || "non précisés"
+    }`,
+    `Compétences : ${
+      p.skills
+        .map((s) => clean(s, 60))
+        .filter(Boolean)
+        .slice(0, 30)
+        .join(", ") || "aucune indiquée"
+    }`,
     `Expériences :\n${experiences || "  aucune indiquée"}`,
     `Formations :\n${education || "  aucune indiquée"}`,
     `Langues : ${languages || "non précisées"}`,
@@ -148,14 +176,20 @@ export function buildComposeApplicationPrompt(input: ComposeApplicationInput): {
       ? `${clean(input.insight.text, 400)} (source : ${clean(input.insight.source_url, 300)})`
       : "aucune";
   const activityNote =
-    input.insight.kind === "activity" ? `\nÀ propos de l'activité : ${clean(input.insight.text, 400)}` : "";
-  const contract = p.contract_type ? CONTRACT_LABELS[p.contract_type] ?? p.contract_type : "non précisé";
+    input.insight.kind === "activity"
+      ? `\nÀ propos de l'activité : ${clean(input.insight.text, 400)}`
+      : "";
+  const contract = p.contract_type
+    ? (CONTRACT_LABELS[p.contract_type] ?? p.contract_type)
+    : "non précisé";
 
   const retry =
     input.problems && input.problems.length > 0
       ? `\n\nTa version précédente ne respectait pas les règles. Problèmes à corriger :\n${input.problems
           .map((x) => `- ${clean(x, 400)}`)
-          .join("\n")}\nRéécris le mail en corrigeant tous ces points. Retire tout élément absent du profil.`
+          .join(
+            "\n",
+          )}\nRéécris le mail en corrigeant tous ces points. Retire tout élément absent du profil.`
       : "";
 
   const prompt = `Profil de l'étudiant :

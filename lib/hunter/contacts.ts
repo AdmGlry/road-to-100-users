@@ -88,8 +88,26 @@ export function buildContactCandidates(input: {
 
   // Rank table (lower = better), per company size.
   const R = small
-    ? { webRecruit: 1, webLeader: 0, leaderMain: 2, webOther: 3, leaderOther: 4, genRecruit: 5, genRh: 6, genContact: 7 }
-    : { webRecruit: 0, webLeader: 2, leaderMain: 4, webOther: 1, leaderOther: 7, genRecruit: 3, genRh: 5, genContact: 6 };
+    ? {
+        webRecruit: 1,
+        webLeader: 0,
+        leaderMain: 2,
+        webOther: 3,
+        leaderOther: 4,
+        genRecruit: 5,
+        genRh: 6,
+        genContact: 7,
+      }
+    : {
+        webRecruit: 0,
+        webLeader: 2,
+        leaderMain: 4,
+        webOther: 1,
+        leaderOther: 7,
+        genRecruit: 3,
+        genRh: 5,
+        genContact: 6,
+      };
 
   const list: Ranked[] = [];
   const push = (c: Ranked) => {
@@ -104,7 +122,8 @@ export function buildContactCandidates(input: {
 
   const leaderEmails = new Map<string, Leader>();
   for (const l of leaders) {
-    for (const g of guessEmailPatterns(l.first_name, l.last_name, domain)) leaderEmails.set(g.email, l);
+    for (const g of guessEmailPatterns(l.first_name, l.last_name, domain))
+      leaderEmails.set(g.email, l);
   }
 
   for (const { email } of input.websiteEmails) {
@@ -112,11 +131,35 @@ export function buildContactCandidates(input: {
     if (registrableDomain(e.split("@")[1] ?? "") !== domain) continue;
     const leader = leaderEmails.get(e);
     if (leader) {
-      push({ first_name: leader.first_name, last_name: leader.last_name, role: leader.role, email: e, source: "website", confidence: "high", rank: R.webLeader });
+      push({
+        first_name: leader.first_name,
+        last_name: leader.last_name,
+        role: leader.role,
+        email: e,
+        source: "website",
+        confidence: "high",
+        rank: R.webLeader,
+      });
     } else if (isRecruitingAddress(e)) {
-      push({ first_name: null, last_name: null, role: "Recrutement", email: e, source: "website", confidence: "high", rank: R.webRecruit });
+      push({
+        first_name: null,
+        last_name: null,
+        role: "Recrutement",
+        email: e,
+        source: "website",
+        confidence: "high",
+        rank: R.webRecruit,
+      });
     } else {
-      push({ first_name: null, last_name: null, role: null, email: e, source: "website", confidence: "medium", rank: R.webOther });
+      push({
+        first_name: null,
+        last_name: null,
+        role: null,
+        email: e,
+        source: "website",
+        confidence: "medium",
+        rank: R.webOther,
+      });
     }
   }
 
@@ -135,9 +178,33 @@ export function buildContactCandidates(input: {
         });
       });
     });
-    push({ first_name: null, last_name: null, role: "Recrutement", email: `recrutement@${domain}`, source: "generic", confidence: "low", rank: R.genRecruit });
-    push({ first_name: null, last_name: null, role: "Ressources humaines", email: `rh@${domain}`, source: "generic", confidence: "low", rank: R.genRh });
-    push({ first_name: null, last_name: null, role: null, email: `contact@${domain}`, source: "generic", confidence: "low", rank: R.genContact });
+    push({
+      first_name: null,
+      last_name: null,
+      role: "Recrutement",
+      email: `recrutement@${domain}`,
+      source: "generic",
+      confidence: "low",
+      rank: R.genRecruit,
+    });
+    push({
+      first_name: null,
+      last_name: null,
+      role: "Ressources humaines",
+      email: `rh@${domain}`,
+      source: "generic",
+      confidence: "low",
+      rank: R.genRh,
+    });
+    push({
+      first_name: null,
+      last_name: null,
+      role: null,
+      email: `contact@${domain}`,
+      source: "generic",
+      confidence: "low",
+      rank: R.genContact,
+    });
   }
 
   return list

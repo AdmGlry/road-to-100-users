@@ -31,7 +31,10 @@ function remember(domain: string, value: boolean, ttl: number, now: number) {
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(Object.assign(new Error("dns timeout"), { code: "ETIMEOUT" })), ms);
+    timer = setTimeout(
+      () => reject(Object.assign(new Error("dns timeout"), { code: "ETIMEOUT" })),
+      ms,
+    );
   });
   return Promise.race([p, timeout]).finally(() => clearTimeout(timer));
 }

@@ -1,0 +1,281 @@
+{
+  "results": [
+    {
+      "siren": "901234567",
+      "nom_complet": "ALPHA CONSEIL (ALPHA)",
+      "nom_raison_sociale": "ALPHA CONSEIL",
+      "sigle": "ALPHA",
+      "nombre_etablissements_ouverts": 1,
+      "siege": {
+        "siret": "90123456700011",
+        "adresse": "5 RUE CREBILLON 44000 NANTES",
+        "code_postal": "44000",
+        "libelle_commune": "NANTES",
+        "latitude": "47.2133",
+        "longitude": "-1.5612",
+        "coordonnees": "47.2133,-1.5612",
+        "est_siege": true,
+        "etat_administratif": "A",
+        "activite_principale": "70.22Z",
+        "tranche_effectif_salarie": "12"
+      },
+      "activite_principale": "70.22Z",
+      "activite_principale_naf25": "70.20Z",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "12",
+      "date_creation": "2015-03-01",
+      "nature_juridique": "5710",
+      "dirigeants": [
+        {
+          "nom": "DUPONT",
+          "prenoms": "JEAN-PIERRE MARIE",
+          "qualite": "Président",
+          "type_dirigeant": "personne physique",
+          "annee_de_naissance": "1970",
+          "date_de_naissance": "1970-05",
+          "nationalite": "Française"
+        },
+        {
+          "nom": "MARTIN",
+          "prenoms": "SOPHIE",
+          "qualite": "Commissaire aux comptes suppléant",
+          "type_dirigeant": "personne physique",
+          "annee_de_naissance": "1980",
+          "date_de_naissance": "1980-01"
+        },
+        {
+          "siren": "123456789",
+          "denomination": "AUDIT ET CO",
+          "qualite": "Commissaire aux comptes titulaire",
+          "type_dirigeant": "personne morale"
+        },
+        {
+          "nom": "LE GALL",
+          "prenoms": "ANNE",
+          "qualite": "Directeur général délégué",
+          "type_dirigeant": "personne physique",
+          "annee_de_naissance": "1985",
+          "date_de_naissance": "1985-09"
+        }
+      ],
+      "matching_etablissements": [
+        {
+          "siret": "90123456700011",
+          "adresse": "5 RUE CREBILLON 44000 NANTES",
+          "code_postal": "44000",
+          "libelle_commune": "NANTES",
+          "latitude": "47.2133",
+          "longitude": "-1.5612",
+          "est_siege": true,
+          "etat_administratif": "A",
+          "activite_principale": "70.22Z",
+          "tranche_effectif_salarie": "12",
+          "nom_commercial": null,
+          "liste_enseignes": null
+        }
+      ],
+      "complements": {
+        "est_association": false,
+        "est_entrepreneur_individuel": false,
+        "est_service_public": false
+      },
+      "finances": { "2023": { "ca": 1200000 } }
+    },
+    {
+      "siren": "552000001",
+      "nom_complet": "GRAND GROUPE SERVICES NUMERIQUES",
+      "nom_raison_sociale": "GRAND GROUPE SERVICES NUMERIQUES",
+      "sigle": null,
+      "nombre_etablissements_ouverts": 80,
+      "siege": {
+        "siret": "55200000100018",
+        "adresse": "1 RUE DU SIEGE 92130 ISSY-LES-MOULINEAUX",
+        "code_postal": "92130",
+        "libelle_commune": "ISSY-LES-MOULINEAUX",
+        "latitude": "48.8245",
+        "longitude": "2.2700",
+        "est_siege": true,
+        "etat_administratif": "A",
+        "activite_principale": "62.02A",
+        "tranche_effectif_salarie": "53"
+      },
+      "activite_principale": "62.02A",
+      "categorie_entreprise": "GE",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "53",
+      "date_creation": "1960-01-01",
+      "nature_juridique": "5599",
+      "dirigeants": [
+        {
+          "nom": "DURAND",
+          "prenoms": "PAUL",
+          "qualite": "Directeur Général",
+          "type_dirigeant": "personne physique",
+          "annee_de_naissance": "1965",
+          "date_de_naissance": "1965-02"
+        },
+        {
+          "nom": "PETIT",
+          "prenoms": "CLAIRE",
+          "qualite": "Administrateur",
+          "type_dirigeant": "personne physique",
+          "annee_de_naissance": "1962"
+        }
+      ],
+      "matching_etablissements": [
+        {
+          "siret": "55200000100500",
+          "adresse": "ZAC ATLANTIS 44800 SAINT-HERBLAIN",
+          "code_postal": "44800",
+          "libelle_commune": "SAINT-HERBLAIN",
+          "latitude": "47.2240",
+          "longitude": "-1.6400",
+          "est_siege": false,
+          "etat_administratif": "A",
+          "activite_principale": "62.02A",
+          "tranche_effectif_salarie": "22"
+        },
+        {
+          "siret": "55200000100420",
+          "adresse": "16 MAIL PABLO PICASSO 44000 NANTES",
+          "code_postal": "44000",
+          "libelle_commune": "NANTES",
+          "latitude": "47.2135",
+          "longitude": "-1.5420",
+          "est_siege": false,
+          "etat_administratif": "A",
+          "activite_principale": "62.02A",
+          "tranche_effectif_salarie": "32",
+          "nom_commercial": null,
+          "liste_enseignes": ["GGSN NANTES"]
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    {
+      "siren": "812345678",
+      "nom_complet": "ANCIENNE SSII FERMEE",
+      "activite_principale": "62.02A",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "C",
+      "tranche_effectif_salarie": "11",
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "81234567800010",
+          "adresse": "2 RUE DE STRASBOURG 44000 NANTES",
+          "code_postal": "44000",
+          "libelle_commune": "NANTES",
+          "latitude": "47.2170",
+          "longitude": "-1.5510",
+          "est_siege": true,
+          "etat_administratif": "F"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    {
+      "siren": "823456789",
+      "nom_complet": "MONSIEUR JEAN FREELANCE",
+      "activite_principale": "62.01Z",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "NN",
+      "nature_juridique": "1000",
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "82345678900015",
+          "adresse": "8 RUE DES HAUTS PAVES 44000 NANTES",
+          "code_postal": "44000",
+          "libelle_commune": "NANTES",
+          "latitude": "47.2230",
+          "longitude": "-1.5650",
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": true }
+    },
+    {
+      "siren": "834567890",
+      "nom_complet": "TAILLE INCONNUE SAS",
+      "activite_principale": "62.02A",
+      "categorie_entreprise": null,
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": null,
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "83456789000012",
+          "adresse": "3 QUAI DE LA FOSSE 44000 NANTES",
+          "code_postal": "44000",
+          "libelle_commune": "NANTES",
+          "latitude": 47.2105,
+          "longitude": -1.568,
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    {
+      "siren": "845678901",
+      "nom_complet": "DATA REZE",
+      "activite_principale": "62.01Z",
+      "categorie_entreprise": "PME",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "01",
+      "dirigeants": [
+        {
+          "nom": "NGUYEN",
+          "prenoms": "LINH",
+          "qualite": "Gérant",
+          "type_dirigeant": "personne physique",
+          "date_de_naissance": "1990-03"
+        }
+      ],
+      "matching_etablissements": [
+        {
+          "siret": "84567890100019",
+          "adresse": "10 RUE DE LA NAUDIERE 44400 REZE",
+          "code_postal": "44400",
+          "libelle_commune": "REZE",
+          "latitude": "47.1810",
+          "longitude": "-1.5500",
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    {
+      "siren": "856789012",
+      "nom_complet": "BANQUE REGIONALE DE L'OUEST",
+      "activite_principale": "64.19Z",
+      "categorie_entreprise": "ETI",
+      "etat_administratif": "A",
+      "tranche_effectif_salarie": "41",
+      "dirigeants": [],
+      "matching_etablissements": [
+        {
+          "siret": "85678901200016",
+          "adresse": "1 RUE DE LA BANQUE 44300 NANTES",
+          "code_postal": "44300",
+          "libelle_commune": "NANTES",
+          "latitude": "47.2480",
+          "longitude": "-1.5200",
+          "est_siege": true,
+          "etat_administratif": "A"
+        }
+      ],
+      "complements": { "est_association": false, "est_entrepreneur_individuel": false }
+    },
+    { "nom_complet": "SANS SIREN (ignorée)" }
+  ],
+  "total_results": 8,
+  "page": 1,
+  "per_page": 25,
+  "total_pages": 1
+}

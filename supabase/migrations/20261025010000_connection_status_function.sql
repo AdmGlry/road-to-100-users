@@ -4,8 +4,13 @@
 -- linter (ERROR level), so real security advisories stay visible.
 --
 -- Usage from the app: supabase.rpc('google_connection_status')
+--
+-- The view is neutralised (security_invoker: clients have no privilege on
+-- google_connections, so it returns nothing to them) rather than dropped, so
+-- this migration is non-destructive. It is no longer used by the app.
 
-drop view if exists public.google_connection_status;
+alter view public.google_connection_status set (security_invoker = true);
+revoke all on public.google_connection_status from authenticated;
 
 create or replace function public.google_connection_status()
 returns table (

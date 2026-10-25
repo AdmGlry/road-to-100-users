@@ -101,11 +101,11 @@ export function buildContactCandidates(input: {
     : {
         webRecruit: 0,
         webLeader: 2,
-        leaderMain: 4,
+        leaderMain: 5,
         webOther: 1,
         leaderOther: 7,
         genRecruit: 3,
-        genRh: 5,
+        genRh: 4,
         genContact: 6,
       };
 

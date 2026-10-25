@@ -55,7 +55,9 @@ describe("buildMimeMessage", () => {
     expect(part(msg, "text/plain; charset=utf-8")).toBe(
       "Bonjour,\r\n\r\nJe m'appelle Léa.\r\nMerci !",
     );
-    expect(part(msg, "text/html; charset=utf-8")).toContain("<p>Je m&#39;appelle Léa.<br>Merci !</p>");
+    expect(part(msg, "text/html; charset=utf-8")).toContain(
+      "<p>Je m&#39;appelle Léa.<br>Merci !</p>",
+    );
     expect(msg).toContain('Content-Disposition: attachment; filename="CV_Lea_Martin.pdf"');
 
     const attIdx = msg.indexOf("Content-Type: application/pdf");
@@ -75,7 +77,9 @@ describe("buildMimeMessage", () => {
 
   it("keeps ASCII headers readable and quotes display names", () => {
     const msg = decode(
-      buildMimeMessage(input({ subject: "Stage - Acme", from: { name: 'Jo "J" Doe', email: "jo@x.fr" } })),
+      buildMimeMessage(
+        input({ subject: "Stage - Acme", from: { name: 'Jo "J" Doe', email: "jo@x.fr" } }),
+      ),
     );
     expect(msg).toContain("Subject: Stage - Acme\r\n");
     expect(msg).toContain('From: "Jo \\"J\\" Doe" <jo@x.fr>\r\n');

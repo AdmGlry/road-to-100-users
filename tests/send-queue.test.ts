@@ -202,10 +202,7 @@ describe("processSendQueue — quota and spacing", () => {
   });
 
   it("sends at most one mail per student per run and respects the 30 s gap", async () => {
-    const { run, sendRawMessage } = setup([
-      app(),
-      app({ id: "app-2", scheduled_for: at(-500) }),
-    ]);
+    const { run, sendRawMessage } = setup([app(), app({ id: "app-2", scheduled_for: at(-500) })]);
     expect(await run()).toEqual({ sent: 1, failed: 0, deferred: 1 });
     // Next run 0 s later: the previous send is < 30 s old.
     expect(await run()).toEqual({ sent: 0, failed: 0, deferred: 1 });
@@ -302,7 +299,10 @@ describe("processSendQueue — failures", () => {
   it("no valid contact or no CV: draft with a clear message, no quota used", async () => {
     const noContact = setup([app({ contact_id: null })]);
     await noContact.run();
-    expect(noContact.appRow()).toMatchObject({ status: "draft", send_error: SEND_ERRORS.noContact });
+    expect(noContact.appRow()).toMatchObject({
+      status: "draft",
+      send_error: SEND_ERRORS.noContact,
+    });
 
     const noCv = setup([app()]);
     noCv.deps.downloadCv = vi.fn(async () => null);

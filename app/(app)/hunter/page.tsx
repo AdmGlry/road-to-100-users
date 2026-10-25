@@ -27,12 +27,17 @@ export const maxDuration = 300;
 export default function HunterPage() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Chasseur</h1>
-        <p className="text-muted-foreground">
-          Trouve des entreprises qui n&apos;ont pas publié d&apos;offre, notées selon ton profil.
-          Coche celles qui t&apos;intéressent.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Chasseur</h1>
+          <p className="text-muted-foreground">
+            Trouve des entreprises qui n&apos;ont pas publié d&apos;offre, notées selon ton profil.
+            Coche celles qui t&apos;intéressent.
+          </p>
+        </div>
+        <Button asChild variant="outline" className="h-10 w-fit shrink-0">
+          <Link href="/hunter/review">Mes mails à relire</Link>
+        </Button>
       </div>
       {/* Profile + latest search depend on the session (cookies): streamed behind Suspense. */}
       <Suspense fallback={<HunterSkeleton />}>

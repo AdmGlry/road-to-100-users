@@ -24,19 +24,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { logEvent } from "@/lib/events";
 import { getValidAccessToken, GmailNotConnectedError } from "@/lib/google/connection";
+import { SEND_CLAIM_STALE_MS, SEND_SPACING_MIN_S } from "@/lib/hunter/application-types";
 import {
-  SEND_CLAIM_STALE_MS,
-  SEND_SPACING_MIN_S,
-} from "@/lib/hunter/application-types";
-import { buildMimeMessage, cvFilename, isValidEmail, MimeError, textToHtml } from "@/lib/hunter/mime";
+  buildMimeMessage,
+  cvFilename,
+  isValidEmail,
+  MimeError,
+  textToHtml,
+} from "@/lib/hunter/mime";
 import { GmailAuthError, GmailSendError, sendRawMessage } from "@/lib/integrations/gmail";
 import { CV_BUCKET } from "@/lib/profile/schema";
-import {
-  computeSendSchedule,
-  getSendQuota,
-  releaseSendSlot,
-  reserveSendSlot,
-} from "@/lib/quotas";
+import { computeSendSchedule, getSendQuota, releaseSendSlot, reserveSendSlot } from "@/lib/quotas";
 
 /** Follow-up reminder date after a send (SPEC §8.3). */
 export const FOLLOWUP_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
@@ -51,13 +49,13 @@ export const SEND_ERRORS = {
     "Reconnecte ton Gmail pour envoyer ce mail : il reste validé, relance l'envoi une fois Gmail reconnecté.",
   scopes:
     "Spontané n'a pas l'autorisation d'envoyer depuis ton Gmail. Reconnecte-le en cochant toutes les cases demandées.",
-  quota:
-    "Limite de 20 envois sur 24 h atteinte : ce mail reste validé, relance l'envoi plus tard.",
+  quota: "Limite de 20 envois sur 24 h atteinte : ce mail reste validé, relance l'envoi plus tard.",
   rejected:
     "Gmail a refusé ce mail (adresse du destinataire ou contenu invalide). Vérifie le contact, puis valide-le à nouveau.",
   rateLimited:
     "Gmail limite temporairement tes envois. Valide à nouveau ce mail dans quelques minutes.",
-  googleDown: "Gmail n'a pas répondu et ce mail n'est pas parti. Valide-le à nouveau pour réessayer.",
+  googleDown:
+    "Gmail n'a pas répondu et ce mail n'est pas parti. Valide-le à nouveau pour réessayer.",
   uncertain:
     "L'envoi a été interrompu et on ne sait pas si ce mail est parti. Regarde dans « Messages envoyés » de ton Gmail avant de le valider à nouveau.",
   internal:
@@ -471,7 +469,11 @@ async function sendOne(
       await unscheduleUser(row, SEND_ERRORS.reconnect);
       return "deferred";
     }
-    if (status === 403 && err instanceof GmailSendError && /insufficient|scope/i.test(err.reason ?? "")) {
+    if (
+      status === 403 &&
+      err instanceof GmailSendError &&
+      /insufficient|scope/i.test(err.reason ?? "")
+    ) {
       await unscheduleUser(row, SEND_ERRORS.scopes);
       return "deferred";
     }

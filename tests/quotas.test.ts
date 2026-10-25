@@ -106,7 +106,10 @@ describe("reserveSendSlot / releaseSendSlot", () => {
 
   it("deletes the slot on release", async () => {
     const { client, table } = createFakeSupabase({
-      send_log: [{ id: "s1", user_id: USER }, { id: "s2", user_id: USER }],
+      send_log: [
+        { id: "s1", user_id: USER },
+        { id: "s2", user_id: USER },
+      ],
     });
     await releaseSendSlot(client, "s1");
     expect(table("send_log").map((r) => r.id)).toEqual(["s2"]);

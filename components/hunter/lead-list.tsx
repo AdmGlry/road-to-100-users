@@ -1,9 +1,11 @@
 "use client";
 
 import { AlertCircleIcon, LoaderCircleIcon, SearchXIcon, SendIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useId, useMemo, useRef, useState } from "react";
 
 import { listLeadsAction, setLeadStatusAction, type Lead } from "@/app/(app)/hunter/actions";
+import { startPreparationAction } from "@/app/(app)/hunter/review/actions";
 import {
   companiesCountLabel,
   countSelected,
@@ -30,8 +32,9 @@ type EditableStatus = "selected" | "dismissed" | "suggested";
 
 /**
  * Selection screen (SPEC §7.3): filters, lead cards with optimistic
- * select / dismiss (with undo) and the "Préparer N candidatures" bar.
- * Selections are persisted on each change; Sprint 3 will use them.
+ * select / dismiss (with undo) and the "Préparer N candidatures" bar, which
+ * queues the selected leads for preparation (SPEC §7.4) and opens the
+ * review screen (/hunter/review).
  */
 export function LeadList({
   searchId,
@@ -52,6 +55,9 @@ export function LeadList({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [preparing, setPreparing] = useState(false);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchSeq = useRef(0);
   const leadSeq = useRef(new Map<string, number>());
@@ -135,6 +141,32 @@ export function LeadList({
   );
   const activeCount = shown.filter((l) => !undoIds.has(l.id)).length;
   const selectedCount = countSelected(known.values(), overrides);
+  const selectedIds = useMemo(
+    () =>
+      [...known.values()]
+        .filter((l) => (overrides[l.id] ?? l.status) === "selected")
+        .map((l) => l.id),
+    [known, overrides],
+  );
+
+  const prepare = async () => {
+    if (selectedIds.length === 0 || preparing) return;
+    setPreparing(true);
+    setPrepareError(null);
+    try {
+      const result = await startPreparationAction(selectedIds);
+      if (!result.ok) {
+        setPrepareError(result.message);
+        setPreparing(false);
+        return;
+      }
+      // Stays "busy" until the review screen replaces this one.
+      router.push("/hunter/review");
+    } catch {
+      setPrepareError("Connexion perdue : la préparation n'a pas pu être lancée. Réessaie.");
+      setPreparing(false);
+    }
+  };
   const filtered = hasActiveFilters(filters);
 
   const onToggleSelect = (lead: Lead, selected: boolean) => {
@@ -173,7 +205,13 @@ export function LeadList({
               : `${companiesCountLabel(activeCount)}, triées par compatibilité avec ton profil.`}
           </p>
         </div>
-        <PrepareBar count={selectedCount} variant="desktop" />
+        <PrepareBar
+          count={selectedCount}
+          variant="desktop"
+          pending={preparing}
+          error={prepareError}
+          onPrepare={() => void prepare()}
+        />
       </div>
 
       <FiltersBar filters={filters} onChange={changeFilters} busy={loading && leads.length > 0} />
@@ -232,7 +270,13 @@ export function LeadList({
         {announcement}
       </p>
 
-      <PrepareBar count={selectedCount} variant="mobile" />
+      <PrepareBar
+        count={selectedCount}
+        variant="mobile"
+        pending={preparing}
+        error={prepareError}
+        onPrepare={() => void prepare()}
+      />
     </section>
   );
 }
@@ -354,23 +398,54 @@ function EmptyState({
 }
 
 /**
- * Sticky bottom bar. Sprint 3 (contact, writing, sending) is not built yet:
- * the button stays disabled with a visible explanation (no hover-only
- * tooltip, which would not work on a phone).
+ * Sticky bottom bar "Préparer N candidatures": queues the selection for
+ * preparation (contact, hook, mail) then opens the review screen. Nothing is
+ * sent from here: every mail is reviewed and validated there first.
  */
-function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "desktop" }) {
+function PrepareBar({
+  count,
+  variant,
+  pending,
+  error,
+  onPrepare,
+}: {
+  count: number;
+  variant: "mobile" | "desktop";
+  pending: boolean;
+  error: string | null;
+  onPrepare: () => void;
+}) {
   const noteId = useId();
   const label = count > 1 ? "entreprises sélectionnées" : "entreprise sélectionnée";
   const button = (
-    <Button size="lg" disabled aria-describedby={noteId} className="w-full md:w-auto">
-      <SendIcon aria-hidden="true" />
-      {prepareLabel(count)}
+    <Button
+      size="lg"
+      disabled={count === 0 || pending}
+      aria-describedby={noteId}
+      onClick={onPrepare}
+      className="w-full md:w-auto"
+    >
+      {pending ? (
+        <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+      ) : (
+        <SendIcon aria-hidden="true" />
+      )}
+      {pending ? "Lancement de la préparation…" : prepareLabel(count)}
     </Button>
   );
   const note = (
-    <p id={noteId} className="text-muted-foreground text-xs">
-      La rédaction et l&apos;envoi des mails arrivent bientôt. Ta sélection est déjà enregistrée.
-    </p>
+    <div id={noteId} className="flex flex-col gap-1">
+      {error && (
+        <p role="alert" className="text-destructive text-xs md:text-right">
+          {error}
+        </p>
+      )}
+      <p className="text-muted-foreground text-xs md:text-right">
+        {count === 0
+          ? "Coche au moins une entreprise pour préparer ta candidature."
+          : "On trouve un contact et on rédige un mail pour chacune. Rien ne part sans ta validation."}
+      </p>
+    </div>
   );
 
   // Desktop (≥ md): a normal right-aligned action bar next to the list title.

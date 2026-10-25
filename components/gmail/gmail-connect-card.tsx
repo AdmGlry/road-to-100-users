@@ -6,7 +6,9 @@ import type { GmailStatus } from "@/lib/hunter/application-types";
 
 /** Link that starts the Gmail OAuth flow and comes back to `next`. */
 export function gmailConnectHref(next?: string): string {
-  return next ? `/api/google/oauth/start?next=${encodeURIComponent(next)}` : "/api/google/oauth/start";
+  return next
+    ? `/api/google/oauth/start?next=${encodeURIComponent(next)}`
+    : "/api/google/oauth/start";
 }
 
 const RESULT_MESSAGES: Record<string, string> = {
@@ -31,7 +33,10 @@ export function gmailResultMessage(params: {
   const gmail = Array.isArray(params.gmail) ? params.gmail[0] : params.gmail;
   const reason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
   if (gmail === "connected") {
-    return { kind: "success", text: "Gmail est connecté. Tes candidatures partiront de ton adresse." };
+    return {
+      kind: "success",
+      text: "Gmail est connecté. Tes candidatures partiront de ton adresse.",
+    };
   }
   if (gmail === "error") {
     return {

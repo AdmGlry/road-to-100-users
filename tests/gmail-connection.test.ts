@@ -88,7 +88,9 @@ describe("getValidAccessToken", () => {
 
   it("refreshes when the token expires in less than 2 minutes and stores it encrypted", async () => {
     const { client, table } = createFakeSupabase({
-      google_connections: [connection({ expires_at: new Date(NOW.getTime() + 60_000).toISOString() })],
+      google_connections: [
+        connection({ expires_at: new Date(NOW.getTime() + 60_000).toISOString() }),
+      ],
     });
     const expiresAt = new Date(NOW.getTime() + 3600_000);
     const refreshAccessToken = vi.fn().mockResolvedValue({ accessToken: "ya29.fresh", expiresAt });
@@ -105,9 +107,9 @@ describe("getValidAccessToken", () => {
       google_connections: [connection({ expires_at: null })],
     });
     const refreshAccessToken = vi.fn().mockRejectedValue(new GmailAuthError("invalid_grant"));
-    await expect(getValidAccessToken(client, USER, { refreshAccessToken }, NOW)).rejects.toMatchObject(
-      { name: "GmailNotConnectedError", code: "expired" },
-    );
+    await expect(
+      getValidAccessToken(client, USER, { refreshAccessToken }, NOW),
+    ).rejects.toMatchObject({ name: "GmailNotConnectedError", code: "expired" });
     expect(table("google_connections")[0].status).toBe("expired");
   });
 
@@ -116,16 +118,18 @@ describe("getValidAccessToken", () => {
       google_connections: [connection({ expires_at: null })],
     });
     const refreshAccessToken = vi.fn().mockRejectedValue(new GmailAuthError("other"));
-    await expect(getValidAccessToken(client, USER, { refreshAccessToken }, NOW)).rejects.toBeInstanceOf(
-      GmailAuthError,
-    );
+    await expect(
+      getValidAccessToken(client, USER, { refreshAccessToken }, NOW),
+    ).rejects.toBeInstanceOf(GmailAuthError);
     expect(table("google_connections")[0].status).toBe("active");
   });
 
   it("throws not_connected / expired / revoked without calling Google", async () => {
     const refreshAccessToken = vi.fn();
     const none = createFakeSupabase();
-    await expect(getValidAccessToken(none.client, USER, { refreshAccessToken })).rejects.toMatchObject({
+    await expect(
+      getValidAccessToken(none.client, USER, { refreshAccessToken }),
+    ).rejects.toMatchObject({
       code: "not_connected",
     });
     for (const status of ["expired", "revoked"]) {
@@ -168,7 +172,9 @@ describe("getGmailStatus", () => {
       ),
     ).toEqual({ state: "active", email: "lea@gmail.com", missingScopes: false });
     expect(
-      await getGmailStatus(rpcClient([{ google_email: "x@gmail.com", scopes: ["email"], status: "active" }])),
+      await getGmailStatus(
+        rpcClient([{ google_email: "x@gmail.com", scopes: ["email"], status: "active" }]),
+      ),
     ).toMatchObject({ missingScopes: true });
     expect((await getGmailStatus(rpcClient([{ status: "expired", scopes: [] }]))).state).toBe(
       "expired",
@@ -186,7 +192,13 @@ describe("disconnectGmail", () => {
     const { client, table } = createFakeSupabase({
       google_connections: [connection()],
       applications: [
-        { id: "a1", user_id: USER, status: "approved", scheduled_for: NOW.toISOString(), send_claimed_at: null },
+        {
+          id: "a1",
+          user_id: USER,
+          status: "approved",
+          scheduled_for: NOW.toISOString(),
+          send_claimed_at: null,
+        },
         { id: "a2", user_id: USER, status: "draft", scheduled_for: null },
       ],
     });

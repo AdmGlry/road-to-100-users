@@ -47,7 +47,11 @@ export default function SettingsPage({ searchParams }: PageProps<"/settings">) {
   );
 }
 
-async function GmailSection({ searchParams }: { searchParams: PageProps<"/settings">["searchParams"] }) {
+async function GmailSection({
+  searchParams,
+}: {
+  searchParams: PageProps<"/settings">["searchParams"];
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/settings");
 
@@ -56,7 +60,8 @@ async function GmailSection({ searchParams }: { searchParams: PageProps<"/settin
     searchParams,
   ]);
   const result = gmailResultMessage(params);
-  const canDisconnect = status.state === "active" || status.state === "expired" || status.state === "revoked";
+  const canDisconnect =
+    status.state === "active" || status.state === "expired" || status.state === "revoked";
 
   return (
     <div className="flex flex-col gap-4">

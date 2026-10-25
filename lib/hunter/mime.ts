@@ -31,7 +31,8 @@ export class MimeError extends Error {
 }
 
 /** Pragmatic address check: one @, no spaces/brackets/quotes, dotted domain. */
-const EMAIL_RE = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
+const EMAIL_RE =
+  /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
 
 export function isValidEmail(value: string): boolean {
   return value.length <= 254 && EMAIL_RE.test(value);
@@ -133,7 +134,9 @@ export function buildMimeMessage(input: MimeInput): string {
 
   if (input.attachment) {
     // Filenames are ASCII (cvFilename); escape quotes defensively.
-    const name = input.attachment.filename.replace(/[^\x20-\x7e]/g, "_").replace(/(["\\])/g, "\\$1");
+    const name = input.attachment.filename
+      .replace(/[^\x20-\x7e]/g, "_")
+      .replace(/(["\\])/g, "\\$1");
     lines.push(
       `--${mixed}`,
       `Content-Type: ${input.attachment.mimeType}; name="${name}"`,
@@ -197,6 +200,9 @@ export function cvFilename(fullName: string | null): string {
         .join("-"),
     );
   if (parts.length === 0) return "CV.pdf";
-  const name = parts.join("_").slice(0, 80).replace(/[-_]+$/, "");
+  const name = parts
+    .join("_")
+    .slice(0, 80)
+    .replace(/[-_]+$/, "");
   return `CV_${name}.pdf`;
 }

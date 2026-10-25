@@ -29,9 +29,7 @@ export const OAUTH_STATE_TTL_MS = 10 * 60_000;
 type StatePayload = { uid: string; nonce: string; exp: number; next: string };
 
 function stateKey(): Buffer {
-  return Buffer.from(
-    hkdfSync("sha256", getCryptoKey(), Buffer.alloc(0), "gmail-oauth-state", 32),
-  );
+  return Buffer.from(hkdfSync("sha256", getCryptoKey(), Buffer.alloc(0), "gmail-oauth-state", 32));
 }
 
 function sign(data: string): Buffer {

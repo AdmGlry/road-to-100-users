@@ -14,12 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /** Reason codes shown by the Gmail card (`?gmail=error&reason=…`). */
 type GmailCallbackReason =
-  | "access_denied"
-  | "state"
-  | "missing_code"
-  | "exchange"
-  | "scopes"
-  | "save";
+  "access_denied" | "state" | "missing_code" | "exchange" | "scopes" | "save";
 
 function finish(origin: string, next: string, result: "connected" | GmailCallbackReason) {
   const url = new URL(next, origin);

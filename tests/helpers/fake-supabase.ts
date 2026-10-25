@@ -228,7 +228,9 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
     }
 
     then<T1 = { data: unknown; error: DbError | null; count?: number }, T2 = never>(
-      onfulfilled?: ((v: { data: unknown; error: DbError | null; count?: number }) => T1 | PromiseLike<T1>) | null,
+      onfulfilled?:
+        | ((v: { data: unknown; error: DbError | null; count?: number }) => T1 | PromiseLike<T1>)
+        | null,
       onrejected?: ((reason: unknown) => T2 | PromiseLike<T2>) | null,
     ): PromiseLike<T1 | T2> {
       return Promise.resolve()

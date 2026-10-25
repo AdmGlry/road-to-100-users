@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { ProfileWorkspace } from "@/components/profile/profile-workspace";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { loadRoleSuggestions } from "@/lib/profile/roles";
 import { loadEditableProfile } from "@/lib/profile/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,7 +39,10 @@ async function ProfileLoader() {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const { profile, hasCv, updatedAt } = await loadEditableProfile(supabase, user.id);
+  const [{ profile, hasCv, updatedAt }, roleSuggestions] = await Promise.all([
+    loadEditableProfile(supabase, user.id),
+    loadRoleSuggestions(supabase, user.id),
+  ]);
 
   return (
     <ProfileWorkspace
@@ -46,6 +50,7 @@ async function ProfileLoader() {
       initialProfile={profile}
       hasCv={hasCv}
       updatedAt={updatedAt}
+      initialRoleSuggestions={roleSuggestions}
     />
   );
 }

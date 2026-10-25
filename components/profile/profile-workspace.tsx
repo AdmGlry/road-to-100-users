@@ -4,7 +4,10 @@ import { useRef, useState } from "react";
 
 import { CvUpload } from "@/components/profile/cv-upload";
 import { ProfileForm, type ProfileFormHandle } from "@/components/profile/profile-form";
+import { hasNoExtractedData } from "@/components/profile/profile-utils";
+import { RoleSuggestions, type RoleSuggestionsHandle } from "@/components/profile/role-suggestions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RoleSuggestions as RoleSuggestionsData } from "@/lib/profile/roles-schema";
 import type { EditableProfile } from "@/lib/profile/schema";
 import { cn } from "@/lib/utils";
 
@@ -13,19 +16,24 @@ import { cn } from "@/lib/utils";
  * below. While a CV is uploaded/analyzed the form is paused (its pending
  * edits are saved first), and it is re-mounted with the new values once
  * the CV data has been applied.
+ * The "Métiers pour toi" coach card sits below the CV card; adding a role
+ * to the targets re-mounts the form with the updated target lists.
  */
 export function ProfileWorkspace({
   userId,
   initialProfile,
   hasCv: initialHasCv,
   updatedAt,
+  initialRoleSuggestions = null,
 }: {
   userId: string;
   initialProfile: EditableProfile;
   hasCv: boolean;
   updatedAt: string | null;
+  initialRoleSuggestions?: RoleSuggestionsData | null;
 }) {
   const formRef = useRef<ProfileFormHandle>(null);
+  const rolesRef = useRef<RoleSuggestionsHandle>(null);
   const [busy, setBusy] = useState(false);
   const [hasCv, setHasCv] = useState(initialHasCv);
   const [form, setForm] = useState({
@@ -53,9 +61,11 @@ export function ProfileWorkspace({
             onUploaded={() => setHasCv(true)}
             onBeforeAnalyze={() => formRef.current?.flush() ?? Promise.resolve(true)}
             onBusyChange={setBusy}
-            onProfileUpdated={(profile, savedAt) =>
-              setForm((f) => ({ version: f.version + 1, profile, savedAt }))
-            }
+            onProfileUpdated={(profile, savedAt) => {
+              setForm((f) => ({ version: f.version + 1, profile, savedAt }));
+              // First CV import: the coach suggests roles right away (no-op if it already did).
+              rolesRef.current?.requestIfEmpty();
+            }}
           />
           {!hasCv && (
             <p className="text-muted-foreground text-sm">
@@ -64,6 +74,19 @@ export function ProfileWorkspace({
           )}
         </CardContent>
       </Card>
+
+      {(hasCv || initialRoleSuggestions || !hasNoExtractedData(form.profile)) && (
+        <RoleSuggestions
+          ref={rolesRef}
+          initialSuggestions={initialRoleSuggestions}
+          targetRoles={form.profile.target_roles}
+          disabled={busy}
+          onBeforeRequest={() => formRef.current?.flush() ?? Promise.resolve(true)}
+          onTargetsUpdated={(profile, savedAt) =>
+            setForm((f) => ({ version: f.version + 1, profile, savedAt }))
+          }
+        />
+      )}
 
       {busy && (
         <p className="text-muted-foreground text-sm">

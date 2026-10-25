@@ -293,7 +293,7 @@ do $$
 begin
   begin
     perform 1 from public.google_connection_status();
-    raise exception 'FAIL: anon can read google_connection_status';
+    raise exception 'FAIL: anon can call google_connection_status()';
   exception when insufficient_privilege then null;
   end;
   if (select count(*) from public.applications) <> 0 then

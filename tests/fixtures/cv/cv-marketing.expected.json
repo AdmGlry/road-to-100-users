@@ -1,0 +1,47 @@
+{
+  "full_name": "Hugo Lefèvre",
+  "email": "hugo.lefevre@example.com",
+  "phone": "06 00 00 00 02",
+  "city": "Lyon",
+  "school": "Exemplia Business School",
+  "degree": "Bachelor Marketing Digital",
+  "skills": ["Canva", "Figma", "WordPress", "Google Analytics", "Meta Ads", "SEO", "Rédaction web"],
+  "experiences": [
+    {
+      "title": "Stagiaire marketing digital",
+      "company": "Maison Exemple Cosmétiques",
+      "start": "mai 2025",
+      "end": "juil. 2025",
+      "bullets": [
+        "Création de contenus pour Instagram et TikTok (+35 % d'abonnés en 3 mois)",
+        "Suivi des campagnes Meta Ads et reporting hebdomadaire"
+      ]
+    },
+    {
+      "title": "Équipier polyvalent",
+      "company": "Restaurant Le Comptoir",
+      "start": "sept. 2023",
+      "end": "avr. 2025",
+      "bullets": ["Service en salle le week-end, encaissement et accueil des clients"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor Marketing Digital",
+      "school": "Exemplia Business School",
+      "start": "sept. 2023",
+      "end": "juin 2026"
+    },
+    {
+      "degree": "Baccalauréat général",
+      "school": "Lycée Exemple de Lyon",
+      "start": null,
+      "end": "juin 2023"
+    }
+  ],
+  "languages": [
+    { "language": "Anglais", "level": "C1" },
+    { "language": "Italien", "level": "B1" }
+  ],
+  "pitch": null
+}

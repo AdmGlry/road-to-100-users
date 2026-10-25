@@ -1,0 +1,56 @@
+{
+  "full_name": "Inès Garnier",
+  "email": "ines.garnier@example.com",
+  "phone": "06 00 00 00 03",
+  "city": "Toulouse",
+  "school": "IUT Exemple de Toulouse",
+  "degree": "BUT Informatique",
+  "skills": [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "PostgreSQL",
+    "Git",
+    "Docker",
+    "Python"
+  ],
+  "experiences": [
+    {
+      "title": "Développeuse web",
+      "company": "Startup Exemple SAS",
+      "start": "avr. 2026",
+      "end": "juin 2026",
+      "bullets": [
+        "Développement d'une API REST en Node.js et TypeScript",
+        "Mise en place de tests automatisés et d'une intégration continue"
+      ]
+    },
+    {
+      "title": "Animatrice en centre de loisirs",
+      "company": "Mairie Exemple",
+      "start": "juil. 2024",
+      "end": "août 2025",
+      "bullets": ["Encadrement de groupes de 12 enfants pendant les vacances scolaires"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "BUT Informatique",
+      "school": "IUT Exemple de Toulouse",
+      "start": "sept. 2024",
+      "end": "aujourd'hui"
+    },
+    {
+      "degree": "Baccalauréat STI2D",
+      "school": "Lycée Exemple d'Albi",
+      "start": null,
+      "end": "juin 2024"
+    }
+  ],
+  "languages": [
+    { "language": "Anglais", "level": "B2" },
+    { "language": "Allemand", "level": "A2" }
+  ],
+  "pitch": null
+}

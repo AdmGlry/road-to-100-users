@@ -179,7 +179,8 @@ export function ProfileForm({
       }}
       onBlur={flushIfPending}
       aria-label="Mon profil"
-      className="flex flex-col gap-6"
+      // Fields focused from the keyboard stop below the sticky save indicator.
+      className="flex flex-col gap-6 [&_:is(input,textarea,select,button)]:scroll-mt-16"
     >
       <SaveIndicator status={status} onRetry={() => void save()} />
 
@@ -203,6 +204,8 @@ export function ProfileForm({
               onChange={(v) => update("email", v)}
               autoComplete="email"
               inputMode="email"
+              spellCheck={false}
+              autoCapitalize="none"
             />
             <TextField
               id={fid("phone")}
@@ -417,8 +420,8 @@ function SaveIndicator({ status, onRetry }: { status: SaveStatus; onRetry: () =>
       break;
     case "error":
       content = (
-        <span className="text-destructive inline-flex flex-wrap items-center gap-2">
-          <AlertCircleIcon aria-hidden="true" className="size-4" />
+        <span className="text-destructive inline-flex items-start gap-2 wrap-anywhere">
+          <AlertCircleIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {status.message}
         </span>
       );
@@ -521,6 +524,8 @@ function TextField({
   placeholder,
   autoComplete,
   inputMode,
+  spellCheck,
+  autoCapitalize,
   className,
 }: {
   id: string;
@@ -532,6 +537,8 @@ function TextField({
   placeholder?: string;
   autoComplete?: string;
   inputMode?: "email" | "tel" | "text";
+  spellCheck?: boolean;
+  autoCapitalize?: "none" | "sentences" | "words";
   className?: string;
 }) {
   return (
@@ -545,6 +552,8 @@ function TextField({
           placeholder={placeholder}
           autoComplete={autoComplete}
           inputMode={inputMode}
+          spellCheck={spellCheck}
+          autoCapitalize={autoCapitalize}
           aria-describedby={describedBy}
         />
       )}
@@ -685,14 +694,14 @@ function RowCard({
   return (
     <li className="flex flex-col gap-4 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 text-sm font-medium break-words">{title}</p>
+        <p className="min-w-0 text-sm font-medium wrap-anywhere">{title}</p>
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onRemove}
           aria-label={removeLabel}
-          className="text-muted-foreground hover:text-destructive shrink-0"
+          className="text-muted-foreground hover:text-destructive min-w-10 shrink-0"
         >
           <Trash2Icon aria-hidden="true" />
           <span className="hidden sm:inline">Supprimer</span>

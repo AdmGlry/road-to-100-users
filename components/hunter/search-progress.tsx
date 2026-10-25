@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const STALE_MESSAGE =
-  "La recherche n'a pas abouti (elle a pris trop de temps). Relance-la, ça arrive parfois quand le service est chargé.";
+  "La recherche a pris trop de temps et s'est arrêtée. Ça arrive quand le service est chargé : relance-la.";
 
 /**
  * Polls the search status every 1.5 s while it runs (10 s when the tab is
@@ -153,7 +153,7 @@ export function SearchProgress({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p className="text-sm">{errorMessage}</p>
+          <p className="text-sm wrap-anywhere">{errorMessage}</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button onClick={onRetry} disabled={retrying} className="h-10 w-full sm:w-fit">
               {retrying ? (
@@ -161,7 +161,7 @@ export function SearchProgress({
               ) : (
                 <RotateCwIcon aria-hidden="true" />
               )}
-              Réessayer
+              Relancer la recherche
             </Button>
             {onEdit && (
               <Button variant="outline" onClick={onEdit} className="h-10 w-full sm:w-fit">
@@ -178,7 +178,7 @@ export function SearchProgress({
     <Card aria-busy="true">
       <CardHeader>
         <CardTitle>
-          <h2 className="text-lg">Recherche en cours…</h2>
+          <h2 className="text-lg">Recherche en cours</h2>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
@@ -192,13 +192,14 @@ export function SearchProgress({
             aria-valuetext={`${percent} % – ${currentLabel}`}
             className="bg-muted h-2 w-full overflow-hidden rounded-full"
           >
+            {/* scaleX instead of width: GPU-only, retargets smoothly between polls. */}
             <div
-              className="bg-primary h-full rounded-full transition-[width] duration-500 ease-out motion-reduce:transition-none"
-              style={{ width: `${percent}%` }}
+              className="bg-primary h-full w-full origin-left transition-[scale] duration-(--duration-slow) ease-(--ease-out)"
+              style={{ scale: `${percent / 100} 1` }}
             />
           </div>
           {/* Announces step changes (not every percent) to screen readers. */}
-          <p className="text-muted-foreground text-sm" aria-live="polite">
+          <p className="text-muted-foreground text-sm tabular-nums" aria-live="polite">
             {currentLabel}…
           </p>
         </div>
@@ -217,14 +218,11 @@ export function SearchProgress({
                 )}
               >
                 {state === "done" ? (
-                  <CheckIcon
-                    aria-hidden="true"
-                    className="size-4 text-emerald-700 dark:text-emerald-400"
-                  />
+                  <CheckIcon aria-hidden="true" className="text-success size-4" />
                 ) : state === "current" ? (
                   <LoaderCircleIcon
                     aria-hidden="true"
-                    className="size-4 animate-spin motion-reduce:animate-none"
+                    className="text-primary size-4 animate-spin motion-reduce:animate-none"
                   />
                 ) : (
                   <CircleIcon aria-hidden="true" className="size-4" />
@@ -246,7 +244,7 @@ export function SearchProgress({
 
         {offline && (
           <p className="text-muted-foreground text-xs">
-            Connexion instable : on réessaie automatiquement…
+            Connexion instable : on réessaie automatiquement.
           </p>
         )}
         <p className="text-muted-foreground text-xs">

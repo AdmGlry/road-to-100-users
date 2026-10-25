@@ -10,9 +10,9 @@ function NativeSelect({ className, ...props }: React.ComponentProps<"select">) {
       <select
         data-slot="native-select"
         className={cn(
-          "border-input h-9 w-full min-w-0 appearance-none rounded-md border bg-transparent py-1 pr-9 pl-3 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-          "aria-invalid:border-destructive aria-invalid:ring-destructive/20",
+          "border-input bg-card h-10 w-full min-w-0 appearance-none rounded-md border py-1 pr-9 pl-3 text-base transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          "focus-visible:border-ring focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid",
+          "aria-invalid:border-destructive aria-invalid:outline-destructive",
           className,
         )}
         {...props}

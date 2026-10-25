@@ -47,3 +47,4 @@ supabase/.branches
 
 # QA screenshots
 qa-artifacts/
+__pycache__/

@@ -1,58 +1,121 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Spontané design tokens. See DESIGN.md for the rules behind them.
+ * World: the student's 4-colour ballpoint (ink blue, correction green,
+ * margin red, pencil-lead text) plus a highlighter yellow for selection.
+ * Variable names follow shadcn/ui so every primitive keeps working.
+ * Dark mode follows the system setting (prefers-color-scheme).
+ */
+
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  color-scheme: light dark;
+
+  --radius: 0.5rem;
+
+  /* Paper and lead */
+  --background: #f5f6fa;
+  --foreground: #171b34;
+  --card: #ffffff;
+  --card-foreground: #171b34;
+  --popover: #ffffff;
+  --popover-foreground: #171b34;
+
+  /* Ink blue: primary actions, links, focus, current page */
+  --primary: #2b3fd6;
+  --primary-foreground: #ffffff;
+  --secondary: #e9ecfb;
+  --secondary-foreground: #1d2a8f;
+  --muted: #eceef4;
+  --muted-foreground: #565b78;
+  --accent: #e9ecfb;
+  --accent-foreground: #171b34;
+
+  /* Margin red: errors and destructive actions */
+  --destructive: #c3302a;
+  --destructive-foreground: #ffffff;
+
+  /* Correction green and highlighter amber: score bands and statuses */
+  --success: #147346;
+  --success-foreground: #ffffff;
+  --success-soft: #e3f4ea;
+  --warning: #8e6400;
+  --warning-soft: #fff3c4;
+
+  /* Highlighter: text selection and rare emphasis surfaces */
+  --highlight: #ffe347;
+  --highlight-foreground: #171b34;
+
+  /* Committed ink band (landing rules section) */
+  --band: #2b3fd6;
+  --band-foreground: #ffffff;
+  --band-muted: #dde1ff;
+
+  /* Lines: --border is decorative, --input bounds form controls (3:1) */
+  --border: #dcdfea;
+  --input: #8a8fa8;
+  --ring: #2b3fd6;
+  --margin-rule: #c3302a;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 480ms;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1226;
+    --foreground: #e9ebf7;
+    --card: #171b36;
+    --card-foreground: #e9ebf7;
+    --popover: #1c2142;
+    --popover-foreground: #e9ebf7;
+
+    --primary: #9aa6ff;
+    --primary-foreground: #0f1226;
+    --secondary: #232a5c;
+    --secondary-foreground: #c9cfff;
+    --muted: #1c2142;
+    --muted-foreground: #a3a8c6;
+    --accent: #232a5c;
+    --accent-foreground: #e9ebf7;
+
+    --destructive: #ff8a80;
+    --destructive-foreground: #0f1226;
+
+    --success: #5fd394;
+    --success-foreground: #0f1226;
+    --success-soft: #12301f;
+    --warning: #ffd447;
+    --warning-soft: #3a2f0a;
+
+    --highlight: #ffe347;
+    --highlight-foreground: #0f1226;
+
+    --band: #1a2170;
+    --band-foreground: #ffffff;
+    --band-muted: #c9cfff;
+
+    --border: #2a3058;
+    --input: #6a7099;
+    --ring: #9aa6ff;
+    --margin-rule: #ff8a80;
+  }
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -68,16 +131,176 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-band: var(--band);
+  --color-band-foreground: var(--band-foreground);
+  --color-band-muted: var(--band-muted);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-margin-rule: var(--margin-rule);
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+}
+
+/* The landing's one orchestrated moment: source underlines draw in once. */
+@theme {
+  --animate-source-mark: source-mark 700ms var(--ease-out) both;
+
+  @keyframes source-mark {
+    from {
+      background-size: 0% 2px;
+    }
+    to {
+      background-size: 100% 2px;
+    }
+  }
+}
+
+/*
+ * App motion (Operate mode): CSS transitions only, so every one is
+ * interruptible. Entrances use @starting-style and start from an
+ * already-visible state (4px offset, never scale(0)). The global
+ * prefers-reduced-motion rule below cuts all of them to 1ms.
+ */
+@layer components {
+  /* Something the student just revealed or changed: fade + 4px rise. */
+  .motion-enter {
+    transition-property: opacity, translate;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* Modal dialog: centred (not trigger-anchored), 0.97 → 1 with its backdrop. */
+  .motion-dialog[open] {
+    transition-property: opacity, scale;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-out);
+  }
+  .motion-dialog[open]::backdrop {
+    transition: background-color var(--duration-base) var(--ease-out);
+  }
+}
+
+@starting-style {
+  .motion-enter {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  .motion-dialog[open] {
+    opacity: 0;
+    scale: 0.97;
+  }
+  .motion-dialog[open]::backdrop {
+    background-color: transparent;
+  }
+}
+
+/* Display voice: Archivo widened. Landing headlines and the wordmark only. */
+@utility font-display {
+  font-stretch: 118%;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: var(--input) transparent;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "kern", "liga";
+    caret-color: var(--primary);
+    accent-color: var(--primary);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--highlight);
+    color: var(--highlight-foreground);
+  }
+
+  /* One focus language everywhere: a 2px ink outline, offset from the element. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  a,
+  button,
+  [role="button"],
+  label,
+  select,
+  summary {
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+    }
+  }
+}
+
+/* Mobile-native (see .claude/skills/mobile-native) */
+@layer base {
+  @media (pointer: coarse) {
+    /* iOS zooms into inputs under 16px, including on iPad widths. */
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+  button,
+  [role="button"],
+  summary,
+  label:has(> input[type="checkbox"]) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  @media (pointer: fine) {
+    html {
+      overscroll-behavior: none;
+    }
   }
 }

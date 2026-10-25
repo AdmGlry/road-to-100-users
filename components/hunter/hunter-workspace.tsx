@@ -108,7 +108,7 @@ export function HunterWorkspace({
       setAttempt((a) => a + 1);
       setPhase({ kind: "running", searchId: result.searchId });
       requestAnimationFrame(() =>
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        resultsRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" }),
       );
     } catch {
       setStartError("Connexion perdue : la recherche n'a pas pu être lancée. Réessaie.");
@@ -120,7 +120,7 @@ export function HunterWorkspace({
   const openForm = () => {
     setFormOpen(true);
     requestAnimationFrame(() => {
-      formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      formCardRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
       formCardRef.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
     });
   };
@@ -138,13 +138,17 @@ export function HunterWorkspace({
               onClick={() => (formOpen ? setFormOpen(false) : openForm())}
               aria-expanded={formOpen}
               aria-controls={formRegionId}
-              className="focus-visible:ring-ring/50 -m-2 flex min-h-10 items-center justify-between gap-3 rounded-md p-2 text-left outline-none focus-visible:ring-[3px]"
+              className="-m-2 flex min-h-10 min-w-0 cursor-pointer items-center justify-between gap-3 rounded-md p-2 text-left"
             >
-              <span className="flex flex-col gap-1">
+              <span className="flex min-w-0 flex-col gap-1">
                 <CardTitle>
                   <h2 className="text-lg">Critères de recherche</h2>
                 </CardTitle>
-                <CardDescription className="break-words">
+                {/* Collapsed summary: 2 lines max, the full criteria are one tap away. */}
+                <CardDescription
+                  className={cn("wrap-anywhere", !formOpen && "line-clamp-2")}
+                  title={formOpen ? undefined : summarizeParams(summary)}
+                >
                   {formOpen ? "Modifie tes critères puis relance." : summarizeParams(summary)}
                 </CardDescription>
               </span>
@@ -152,7 +156,10 @@ export function HunterWorkspace({
                 <span className="hidden sm:inline">{formOpen ? "Fermer" : "Modifier"}</span>
                 <ChevronDownIcon
                   aria-hidden="true"
-                  className={cn("size-5 transition-transform", formOpen && "rotate-180")}
+                  className={cn(
+                    "size-5 transition-[rotate] duration-(--duration-base) ease-(--ease-out)",
+                    formOpen && "rotate-180",
+                  )}
                 />
               </span>
             </button>
@@ -167,7 +174,12 @@ export function HunterWorkspace({
             </>
           )}
         </CardHeader>
-        <CardContent id={formRegionId} hidden={!formOpen} className="flex flex-col gap-4">
+        <CardContent
+          id={formRegionId}
+          hidden={!formOpen}
+          // Reopening the collapsed criteria fades them in (not on first visit).
+          className={cn("flex flex-col gap-4", hasSearch && "motion-enter")}
+        >
           <SearchForm
             initialParams={formParams}
             onSubmit={(params) => void start(params)}
@@ -177,7 +189,8 @@ export function HunterWorkspace({
           />
           {running && (
             <p className="text-muted-foreground text-sm">
-              Une recherche est en cours : attends qu&apos;elle se termine pour en lancer une autre.
+              Une recherche est déjà en cours. Tu pourras en lancer une autre dès qu&apos;elle sera
+              terminée.
             </p>
           )}
           {startError && (
@@ -221,7 +234,7 @@ export function HunterWorkspace({
                 className="h-10"
                 onClick={() => void loadLeads(phase.searchId)}
               >
-                Réessayer
+                Recharger les résultats
               </Button>
             </CardContent>
           </Card>
@@ -237,6 +250,11 @@ export function HunterWorkspace({
       </div>
     </div>
   );
+}
+
+/** Programmatic scrolls jump instead of gliding when the user asked for less motion. */
+function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 }
 
 /** "Business Analyst, Chef de projet · Nantes · 30 km · Alternance" */

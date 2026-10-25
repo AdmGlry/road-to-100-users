@@ -338,6 +338,19 @@ export function MailCard({
         </div>
       )}
 
+      {item.quality_warnings.length > 0 && !item.edited_by_user && phase !== "sent" && (
+        <div className="bg-muted flex flex-col gap-1.5 rounded-md p-3 text-sm" role="note">
+          <p className="font-semibold">Points à relire</p>
+          <ul className="text-foreground/90 list-disc pl-5">
+            {item.quality_warnings.map((warning, i) => (
+              <li key={i} className="wrap-anywhere">
+                {warning}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Mail */}
       {editing ? (
         <div className="flex flex-col gap-4">

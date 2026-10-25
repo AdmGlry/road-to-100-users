@@ -47,14 +47,7 @@ export type CompanyInsight = {
 };
 
 export type ApplicationStatus =
-  | "draft"
-  | "approved"
-  | "sent"
-  | "replied"
-  | "interview"
-  | "rejected"
-  | "no_reply"
-  | "bounced";
+  "draft" | "approved" | "sent" | "replied" | "interview" | "rejected" | "no_reply" | "bounced";
 
 export type PrepStatus = "queued" | "running" | "done" | "failed";
 
@@ -123,6 +116,8 @@ export type ReviewItem = {
   company_insight: string | null;
   company_insight_source: string | null;
   claims_unverified: string[];
+  /** Remaining quality problems (French), e.g. word count out of range. */
+  quality_warnings: string[];
   status: ApplicationStatus;
   approved_at: string | null;
   scheduled_for: string | null;

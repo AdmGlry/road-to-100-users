@@ -45,6 +45,7 @@ function item(over: Partial<ReviewItem> = {}): ReviewItem {
     company_insight: null,
     company_insight_source: null,
     claims_unverified: [],
+    quality_warnings: [],
     status: "draft",
     approved_at: null,
     scheduled_for: null,

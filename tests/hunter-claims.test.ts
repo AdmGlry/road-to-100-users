@@ -128,4 +128,10 @@ describe("checkMail / analyzeMail", () => {
     );
     expect(codes).toEqual(["claims_missing", "subject_empty"]);
   });
+  it("accepts the student's own phone in any format, flags another one", () => {
+    const own = { ...good, body: good.body.replace("06 12 34 56 78", "+33 6 12 34 56 78") };
+    expect(checkMail(own, PROFILE)).toEqual([]);
+    const other = { ...good, body: good.body.replace("06 12 34 56 78", "07 98 76 54 32") };
+    expect(analyzeMail(other, PROFILE).map((p) => p.code)).toEqual(["unknown_numbers"]);
+  });
 });

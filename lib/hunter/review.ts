@@ -119,7 +119,7 @@ export function isValidEmail(email: string | null | undefined): boolean {
 
 const APPLICATION_COLUMNS =
   "id, lead_id, contact_id, subject, body, company_insight, company_insight_source, " +
-  "claims_unverified, status, approved_at, scheduled_for, sent_at, send_error, edited_by_user, created_at";
+  "claims_unverified, quality_warnings, status, approved_at, scheduled_for, sent_at, send_error, edited_by_user, created_at";
 
 type ApplicationRow = {
   id: string;
@@ -130,6 +130,7 @@ type ApplicationRow = {
   company_insight: string | null;
   company_insight_source: string | null;
   claims_unverified: string[] | null;
+  quality_warnings: string[] | null;
   status: ApplicationStatus;
   approved_at: string | null;
   scheduled_for: string | null;
@@ -321,6 +322,7 @@ export async function loadReviewState(
       company_insight: a.company_insight,
       company_insight_source: a.company_insight_source,
       claims_unverified: a.claims_unverified ?? [],
+      quality_warnings: a.quality_warnings ?? [],
       status: a.status,
       approved_at: a.approved_at,
       scheduled_for: a.scheduled_for,

@@ -8,8 +8,8 @@
 --   background, resumed by the review screen / the next call when the
 --   function time budget is exhausted).
 -- applications:
---   - claims_used / claims_unverified: output of prompt compose_application
---     and of the automatic grounding check (lib/hunter/claims.ts);
+--   - claims_used / claims_unverified / quality_warnings: output of prompt
+--     compose_application and of the automatic checks (lib/hunter/claims.ts);
 --   - company_insight_source: URL of the verified hook (null = activity-based);
 --   - approved_at: explicit human validation (required before any send);
 --   - send_claimed_at: lock taken by the send worker so that two workers
@@ -44,6 +44,7 @@ comment on column public.leads.prep_error is 'User-safe (French) error when prep
 alter table public.applications
   add column if not exists claims_used            text[] not null default '{}',
   add column if not exists claims_unverified      text[] not null default '{}',
+  add column if not exists quality_warnings       text[] not null default '{}',
   add column if not exists company_insight_source text,
   add column if not exists approved_at            timestamptz,
   add column if not exists send_claimed_at        timestamptz;
@@ -54,6 +55,8 @@ comment on column public.applications.claims_used is
   'Profile elements the model says it used (prompt compose_application).';
 comment on column public.applications.claims_unverified is
   'claims_used items not found in the profile after one regeneration: shown to the student.';
+comment on column public.applications.quality_warnings is
+  'Other quality problems left after the single regeneration (French, shown to the student).';
 comment on column public.applications.company_insight_source is
   'Source URL of company_insight; null when the hook is based on the company activity.';
 comment on column public.applications.approved_at is

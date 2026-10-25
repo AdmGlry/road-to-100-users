@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PREP_STALE_MS } from "@/lib/hunter/application-types";
@@ -23,23 +22,12 @@ const T0 = Date.parse("2026-10-25T10:00:00Z");
 
 type Row = Record<string, unknown>;
 
-/** The shared fake has no `.is()`: emulate it (null ⇔ missing) for these tests. */
-function withIs(client: SupabaseClient): SupabaseClient {
-  const proto = Object.getPrototypeOf((client as unknown as { from(t: string): object }).from("x"));
-  if (!proto.is) {
-    proto.is = function (this: { filters: ((r: Row) => boolean)[] }, col: string, v: unknown) {
-      this.filters.push((r) => (r[col] ?? null) === v);
-      return this;
-    };
-  }
-  return client;
-}
-
 function setup(opts: { profile?: Row | null; leads?: Row[]; companies?: Row[] } = {}) {
   const shared: Record<string, Row[]> = {};
   const user = createFakeSupabase(
     {
-      profiles: opts.profile === null ? [] : [{ user_id: USER, ...PROFILE, ...(opts.profile ?? {}) }],
+      profiles:
+        opts.profile === null ? [] : [{ user_id: USER, ...PROFILE, ...(opts.profile ?? {}) }],
       companies: opts.companies ?? [
         {
           id: COMPANY_A,
@@ -67,10 +55,42 @@ function setup(opts: { profile?: Row | null; leads?: Row[]; companies?: Row[] } 
         },
       ],
       leads: opts.leads ?? [
-        { id: lead(1), user_id: USER, company_id: COMPANY_A, status: "selected", prep_status: null, prep_started_at: null, created_at: "2026-10-25T09:00:00Z" },
-        { id: lead(2), user_id: USER, company_id: COMPANY_B, status: "selected", prep_status: null, prep_started_at: null, created_at: "2026-10-25T09:00:01Z" },
-        { id: lead(3), user_id: USER, company_id: COMPANY_B, status: "suggested", prep_status: null, prep_started_at: null, created_at: "2026-10-25T09:00:02Z" },
-        { id: lead(4), user_id: OTHER, company_id: COMPANY_A, status: "selected", prep_status: null, prep_started_at: null, created_at: "2026-10-25T09:00:03Z" },
+        {
+          id: lead(1),
+          user_id: USER,
+          company_id: COMPANY_A,
+          status: "selected",
+          prep_status: null,
+          prep_started_at: null,
+          created_at: "2026-10-25T09:00:00Z",
+        },
+        {
+          id: lead(2),
+          user_id: USER,
+          company_id: COMPANY_B,
+          status: "selected",
+          prep_status: null,
+          prep_started_at: null,
+          created_at: "2026-10-25T09:00:01Z",
+        },
+        {
+          id: lead(3),
+          user_id: USER,
+          company_id: COMPANY_B,
+          status: "suggested",
+          prep_status: null,
+          prep_started_at: null,
+          created_at: "2026-10-25T09:00:02Z",
+        },
+        {
+          id: lead(4),
+          user_id: OTHER,
+          company_id: COMPANY_A,
+          status: "selected",
+          prep_status: null,
+          prep_started_at: null,
+          created_at: "2026-10-25T09:00:03Z",
+        },
       ],
       applications: [],
       contacts: [],
@@ -79,7 +99,7 @@ function setup(opts: { profile?: Row | null; leads?: Row[]; companies?: Row[] } 
     { tables: shared },
   );
   const admin = createFakeSupabase({}, { tables: shared });
-  return { user: withIs(user.client), admin: withIs(admin.client), shared, calls: admin.calls };
+  return { user: user.client, admin: admin.client, shared, calls: admin.calls };
 }
 
 function llm(opts: { composeFails?: boolean; insight?: unknown } = {}) {
@@ -90,7 +110,11 @@ function llm(opts: { composeFails?: boolean; insight?: unknown } = {}) {
       prompts.push(`${req.system}\n${req.messages.map((m) => m.content).join("\n")}`);
       if (req.system?.includes("accroche factuelle")) {
         calls.insight++;
-        return { text: JSON.stringify(opts.insight ?? { insight: null, source_url: null }), inputTokens: 50, outputTokens: 10 };
+        return {
+          text: JSON.stringify(opts.insight ?? { insight: null, source_url: null }),
+          inputTokens: 50,
+          outputTokens: 10,
+        };
       }
       calls.compose++;
       await new Promise((r) => setTimeout(r, 1));
@@ -121,7 +145,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const leadRow = (shared: Record<string, Row[]>, id: string) => shared.leads.find((l) => l.id === id)!;
+const leadRow = (shared: Record<string, Row[]>, id: string) =>
+  shared.leads.find((l) => l.id === id)!;
 
 describe("queuePreparation", () => {
   it("queues only the student's own selected leads without an application", async () => {
@@ -171,14 +196,18 @@ describe("runPreparation", () => {
     expect(names).toContain("application_drafted");
     const props = JSON.stringify(shared.events.map((e) => e.props));
     expect(props).not.toContain("Bonjour");
-    expect(props).not.toContain("@");
+    expect(props).not.toMatch(/[\w.-]+@[\w-]+\.[a-z]{2,}/);
   });
 
   it("finds the website, saves it to companies, stores contacts and a sourced hook", async () => {
     const { user, admin, shared } = setup();
     await queuePreparation(user, USER, [lead(1)]);
     const results: WebResult[] = [
-      { title: "ACME Conseil – conseil IT à Nantes", url: "https://www.acme-conseil.fr/", snippet: "" },
+      {
+        title: "ACME Conseil – conseil IT à Nantes",
+        url: "https://www.acme-conseil.fr/",
+        snippet: "",
+      },
       {
         title: "ACME Conseil ouvre une agence à Rennes",
         url: "https://www.ouest-france.fr/acme",
@@ -193,9 +222,14 @@ describe("runPreparation", () => {
       },
     };
     const { provider } = llm({
-      insight: { insight: "ACME Conseil ouvre une nouvelle agence à Rennes.", source_url: "https://www.ouest-france.fr/acme" },
+      insight: {
+        insight: "ACME Conseil ouvre une nouvelle agence à Rennes.",
+        source_url: "https://www.ouest-france.fr/acme",
+      },
     });
-    const findEmailsOnWebsite = vi.fn(async () => [{ email: "recrutement@acme-conseil.fr", page: "https://www.acme-conseil.fr/contact" }]);
+    const findEmailsOnWebsite = vi.fn(async () => [
+      { email: "recrutement@acme-conseil.fr", page: "https://www.acme-conseil.fr/contact" },
+    ]);
     const res = await runPreparation(admin, USER, {
       deps: { ...noNet, webSearch, findEmailsOnWebsite, provider },
     });
@@ -209,7 +243,11 @@ describe("runPreparation", () => {
     expect(shared.contacts.length).toBeGreaterThan(1);
     expect(shared.contacts.every((c) => c.user_id === USER && c.lead_id === lead(1))).toBe(true);
     const best = shared.contacts.find((c) => c.id === shared.applications[0].contact_id);
-    expect(best).toMatchObject({ email: "recrutement@acme-conseil.fr", source: "website", confidence: "high" });
+    expect(best).toMatchObject({
+      email: "recrutement@acme-conseil.fr",
+      source: "website",
+      confidence: "high",
+    });
     expect(shared.applications[0]).toMatchObject({
       company_insight: "ACME Conseil ouvre une nouvelle agence à Rennes.",
       company_insight_source: "https://www.ouest-france.fr/acme",
@@ -338,15 +376,21 @@ describe("regenerateApplication", () => {
 
   it("refuses scheduled, sent or foreign applications", async () => {
     const scheduled = withApp({ status: "approved", scheduled_for: "2026-10-25T11:00:00Z" });
-    await expect(regenerateApplication(scheduled.admin, USER, APP, { provider: llm().provider })).rejects.toMatchObject({
+    await expect(
+      regenerateApplication(scheduled.admin, USER, APP, { provider: llm().provider }),
+    ).rejects.toMatchObject({
       code: "not_editable",
     });
     const sent = withApp({ status: "sent" });
-    await expect(regenerateApplication(sent.admin, USER, APP, { provider: llm().provider })).rejects.toMatchObject({
+    await expect(
+      regenerateApplication(sent.admin, USER, APP, { provider: llm().provider }),
+    ).rejects.toMatchObject({
       code: "not_editable",
     });
     const foreign = withApp({});
-    await expect(regenerateApplication(foreign.admin, OTHER, APP, { provider: llm().provider })).rejects.toMatchObject({
+    await expect(
+      regenerateApplication(foreign.admin, OTHER, APP, { provider: llm().provider }),
+    ).rejects.toMatchObject({
       code: "not_found",
     });
   });

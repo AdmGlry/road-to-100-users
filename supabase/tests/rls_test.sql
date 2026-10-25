@@ -495,6 +495,87 @@ begin
 end
 $$;
 
+-- Clients may only move their applications between draft and approved;
+-- worker-owned columns and sent mails are read-only (service role exempt).
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+declare
+  app_b uuid;
+begin
+  select a.id into app_b from public.applications a
+   where a.status = 'draft' limit 1;
+  update public.applications set subject = 'Objet', body = 'Bonjour', contact_id = null
+   where id = app_b;
+  update public.applications set status = 'approved', approved_at = now() where id = app_b;
+  begin
+    update public.applications set scheduled_for = now() where id = app_b;
+    raise exception 'FAIL: client queued a mail without recipient';
+  exception when insufficient_privilege then null;
+  end;
+  update public.applications set contact_id = 'c1000000-0000-4000-8000-00000000000b'
+   where id = app_b;
+  update public.applications set scheduled_for = now() where id = app_b;
+  if (select scheduled_for from public.applications where id = app_b) is null then
+    raise exception 'FAIL: client cannot queue a validated mail';
+  end if;
+  begin
+    update public.applications set send_claimed_at = now() where id = app_b;
+    raise exception 'FAIL: client set send_claimed_at';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.applications set status = 'sent', sent_at = now() where id = app_b;
+    raise exception 'FAIL: client marked a mail as sent';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.applications set gmail_thread_id = 'x' where id = app_b;
+    raise exception 'FAIL: client set gmail_thread_id';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.applications (user_id, lead_id, status, approved_at, scheduled_for)
+    select 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', l.id, 'approved', now(), now()
+      from public.leads l limit 1;
+    raise exception 'FAIL: client inserted a queued mail';
+  exception when insufficient_privilege then null;
+  end;
+  update public.applications set scheduled_for = null where id = app_b;
+  raise notice 'PASS: client writes on applications limited to draft/approved';
+end
+$$;
+reset request.jwt.claim.sub;
+set role service_role;
+do $$
+begin
+  update public.applications set send_claimed_at = now()
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  update public.applications set send_claimed_at = null
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  update public.applications set status = 'sent', sent_at = now(), scheduled_for = null
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  raise notice 'PASS: service role not restricted by the client guard';
+end
+$$;
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  if not exists (select 1 from public.applications where status = 'sent') then
+    raise exception 'FAIL: no sent application to test';
+  end if;
+  begin
+    update public.applications set subject = 'pwned', status = 'draft' where status = 'sent';
+    raise exception 'FAIL: client edited a sent mail';
+  exception when insufficient_privilege then null;
+  end;
+  raise notice 'PASS: sent mails are read-only for clients';
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
 -- GDPR: deleting auth user A removes ALL of A's rows.
 delete from auth.users where id = :user_a;
 

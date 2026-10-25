@@ -15,7 +15,7 @@ import {
   UndoIcon,
   UsersIcon,
 } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import {
   approveApplicationAction,
@@ -71,10 +71,13 @@ export function MailCard({
   item,
   onState,
   onAnnounce,
+  onUnsavedChange,
 }: {
   item: ReviewItem;
   onState: (state: ReviewState | null) => void;
   onAnnounce: (message: string) => void;
+  /** Reports open, unsaved edits (the send bar keeps that mail out of the send). */
+  onUnsavedChange?: (applicationId: string, unsaved: boolean) => void;
 }) {
   const uid = useId();
   const titleId = `${uid}-title`;
@@ -111,6 +114,13 @@ export function MailCard({
   const busy = pending !== null;
   const dirty = subject.trim() !== item.subject.trim() || body.trim() !== item.body.trim();
   const showPicker = editable && (pickerOpen || !item.contact);
+  const unsaved = editing && dirty;
+
+  useEffect(() => {
+    if (!onUnsavedChange) return;
+    onUnsavedChange(item.applicationId, unsaved);
+    return () => onUnsavedChange(item.applicationId, false);
+  }, [onUnsavedChange, item.applicationId, unsaved]);
 
   const run = async (
     kind: Exclude<Pending, null>,
@@ -302,7 +312,7 @@ export function MailCard({
                 className="h-10 w-fit shrink-0"
                 onClick={() => setPickerOpen(true)}
                 disabled={busy}
-                aria-label={`Changer le destinataire du mail pour ${item.company.name}`}
+                aria-label={`Changer de contact pour ${item.company.name}`}
               >
                 Changer de contact
               </Button>

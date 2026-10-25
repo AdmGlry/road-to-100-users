@@ -2,7 +2,7 @@
 
 import { MailIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   continuePreparationAction,
@@ -40,6 +40,17 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
   const [announcement, setAnnouncement] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  // Mails with open, unsaved edits: never sent in their stored (older) version.
+  const [unsavedIds, setUnsavedIds] = useState<ReadonlySet<string>>(new Set());
+  const onUnsavedChange = useCallback((id: string, unsaved: boolean) => {
+    setUnsavedIds((prev) => {
+      if (prev.has(id) === unsaved) return prev;
+      const next = new Set(prev);
+      if (unsaved) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -114,7 +125,8 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
     };
   }, [planKind]);
 
-  const sendable = sendableItems(state.items);
+  const validated = sendableItems(state.items);
+  const sendable = validated.filter((i) => !unsavedIds.has(i.applicationId));
   const counts = countItems(state.items);
   const gmail = state.gmail;
   const gmailReady = gmail.state === "active" && !gmail.missingScopes;
@@ -218,7 +230,12 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
             >
               {state.items.map((item) => (
                 <li key={item.applicationId} className="min-w-0">
-                  <MailCard item={item} onState={applyState} onAnnounce={setAnnouncement} />
+                  <MailCard
+                    item={item}
+                    onState={applyState}
+                    onAnnounce={setAnnouncement}
+                    onUnsavedChange={onUnsavedChange}
+                  />
                 </li>
               ))}
             </ul>
@@ -233,6 +250,7 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
       {hasItems && gmailReady && (
         <SendBar
           sendable={sendable}
+          unsavedCount={validated.length - sendable.length}
           quota={state.quota}
           gmailEmail={gmail.email}
           pending={sending}

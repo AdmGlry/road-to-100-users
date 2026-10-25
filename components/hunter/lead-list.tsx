@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
+import { MAX_PREPARE_AT_ONCE } from "@/lib/hunter/application-types";
 
 type EditableStatus = "selected" | "dismissed" | "suggested";
 
@@ -417,10 +418,11 @@ function PrepareBar({
 }) {
   const noteId = useId();
   const label = count > 1 ? "entreprises sélectionnées" : "entreprise sélectionnée";
+  const tooMany = count > MAX_PREPARE_AT_ONCE;
   const button = (
     <Button
       size="lg"
-      disabled={count === 0 || pending}
+      disabled={count === 0 || tooMany || pending}
       aria-describedby={noteId}
       onClick={onPrepare}
       className="w-full md:w-auto"
@@ -443,7 +445,9 @@ function PrepareBar({
       <p className="text-muted-foreground text-xs md:text-right">
         {count === 0
           ? "Coche au moins une entreprise pour préparer ta candidature."
-          : "On trouve un contact et on rédige un mail pour chacune. Rien ne part sans ta validation."}
+          : tooMany
+            ? `${MAX_PREPARE_AT_ONCE} candidatures au maximum à la fois : décoche ${count - MAX_PREPARE_AT_ONCE} entreprise${count - MAX_PREPARE_AT_ONCE > 1 ? "s" : ""}.`
+            : "On trouve un contact et on rédige un mail pour chacune. Rien ne part sans ta validation."}
       </p>
     </div>
   );

@@ -75,6 +75,27 @@ describe("saveConnection", () => {
     expect(decrypt(rows[0].refresh_token_enc as string)).toBe("1//refresh");
     expect(rows[0].status).toBe("active");
   });
+
+  it("revokes the previous grant when a new refresh token replaces it", async () => {
+    const { client, table } = createFakeSupabase({ google_connections: [connection()] });
+    const revokeToken = vi.fn().mockResolvedValue(undefined);
+    await saveConnection(
+      client,
+      USER,
+      {
+        accessToken: "ya29.new",
+        refreshToken: "1//new-refresh",
+        expiresAt: null,
+        scopes: GMAIL_SCOPES,
+        email: "autre@gmail.com",
+      },
+      { revokeToken },
+    );
+    expect(revokeToken).toHaveBeenCalledWith("1//refresh");
+    expect(decrypt(table("google_connections")[0].refresh_token_enc as string)).toBe(
+      "1//new-refresh",
+    );
+  });
 });
 
 describe("getValidAccessToken", () => {

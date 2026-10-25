@@ -57,7 +57,28 @@ export async function saveConnection(
   admin: SupabaseClient,
   userId: string,
   tokens: ExchangedTokens,
+  deps: Partial<ConnectionDeps> = {},
 ): Promise<void> {
+  const { revokeToken } = { ...defaultDeps, ...deps };
+  // A new refresh token replaces the stored one: revoke the old grant
+  // (best effort, e.g. reconnecting with another Google account).
+  let previousRefresh: string | null = null;
+  if (tokens.refreshToken) {
+    const { data: prev } = await admin
+      .from("google_connections")
+      .select("refresh_token_enc")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const enc = (prev as { refresh_token_enc?: string | null } | null)?.refresh_token_enc;
+    if (enc) {
+      try {
+        previousRefresh = decrypt(enc);
+      } catch {
+        previousRefresh = null;
+      }
+    }
+  }
+
   const row: Record<string, unknown> = {
     user_id: userId,
     google_email: tokens.email,
@@ -71,6 +92,14 @@ export async function saveConnection(
 
   const { error } = await admin.from("google_connections").upsert(row, { onConflict: "user_id" });
   if (error) throw dbError("upsert", error);
+
+  if (previousRefresh && previousRefresh !== tokens.refreshToken) {
+    try {
+      await revokeToken(previousRefresh);
+    } catch {
+      console.error("[gmail] previous token revoke failed");
+    }
+  }
 }
 
 type StatusRow = { google_email: string | null; scopes: string[] | null; status: string | null };

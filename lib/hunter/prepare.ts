@@ -41,6 +41,8 @@ import { findCompanyInsight } from "./research";
 
 export const DEFAULT_PREP_DEADLINE_MS = 240_000;
 export const DEFAULT_PREP_CONCURRENCY = 2;
+/** LLM cost cap (SPEC §11): regenerations per user per rolling 24 h. */
+export const REGEN_LIMIT_PER_24H = 30;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -54,6 +56,7 @@ export type PrepareErrorCode =
   | "llm_failed"
   | "not_found"
   | "not_editable"
+  | "regen_limit"
   | "unexpected";
 
 const USER_MESSAGES: Record<PrepareErrorCode, string> = {
@@ -66,6 +69,8 @@ const USER_MESSAGES: Record<PrepareErrorCode, string> = {
   llm_failed: "La rédaction par l'IA a échoué (service saturé). Réessaie dans quelques minutes.",
   not_found: "Candidature introuvable.",
   not_editable: "Ce mail est déjà en file d'envoi ou envoyé : il ne peut plus être régénéré.",
+  regen_limit:
+    "Tu as atteint la limite de régénérations pour aujourd'hui. Modifie le mail à la main ou réessaie demain.",
   unexpected: "La préparation a échoué à cause d'une erreur inattendue. Réessaie.",
 };
 
@@ -555,6 +560,16 @@ export async function regenerateApplication(
   ) {
     throw new PrepareError("not_editable");
   }
+
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: regenCount, error: regenErr } = await admin
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("name", "application_regenerated")
+    .gte("created_at", since);
+  if (regenErr) throw dbError("events count", regenErr);
+  if ((regenCount ?? 0) >= REGEN_LIMIT_PER_24H) throw new PrepareError("regen_limit");
 
   const { data: lead, error: leadErr } = await admin
     .from("leads")

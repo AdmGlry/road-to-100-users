@@ -5,6 +5,7 @@ import {
   PrepareError,
   queuePreparation,
   regenerateApplication,
+  REGEN_LIMIT_PER_24H,
   runPreparation,
 } from "@/lib/hunter/prepare";
 import type { WebResult, WebSearchClient } from "@/lib/integrations/websearch";
@@ -372,6 +373,23 @@ describe("regenerateApplication", () => {
       edited_by_user: false,
     });
     expect(prompts[0]).toContain("Accroche vérifiée :\n<<<\naucune\n>>>");
+  });
+
+  it("caps regenerations per rolling 24 h", async () => {
+    const { admin, shared } = withApp({});
+    const recent = new Date().toISOString();
+    shared.events = Array.from({ length: REGEN_LIMIT_PER_24H }, (_, i) => ({
+      id: `ev-${i}`,
+      user_id: USER,
+      name: "application_regenerated",
+      created_at: recent,
+    }));
+    const { provider, prompts } = llm();
+    await expect(regenerateApplication(admin, USER, APP, { provider })).rejects.toMatchObject({
+      code: "regen_limit",
+    });
+    expect(prompts).toHaveLength(0);
+    expect(shared.applications[0]).toMatchObject({ subject: "old" });
   });
 
   it("refuses scheduled, sent or foreign applications", async () => {

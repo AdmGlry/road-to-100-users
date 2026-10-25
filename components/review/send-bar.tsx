@@ -19,6 +19,7 @@ import {
  */
 export function SendBar({
   sendable,
+  unsavedCount = 0,
   quota,
   gmailEmail,
   pending,
@@ -27,6 +28,8 @@ export function SendBar({
   onClearError,
 }: {
   sendable: ReviewItem[];
+  /** Validated mails with unsaved edits open: kept out of the send until saved or cancelled. */
+  unsavedCount?: number;
   quota: SendQuota;
   gmailEmail: string | null;
   pending: boolean;
@@ -36,12 +39,18 @@ export function SendBar({
 }) {
   const [confirming, setConfirming] = useState(false);
   const noteId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const count = sendable.length;
   const remaining = Math.max(0, quota.remaining);
   const blocked = count === 0 || remaining === 0;
 
-  const note =
-    remaining === 0
+  const unsavedNote =
+    unsavedCount > 0
+      ? `${unsavedCount > 1 ? `${unsavedCount} mails ont` : "Un mail a"} des modifications non enregistrées : enregistre-les ou annule-les pour ${unsavedCount > 1 ? "les " : "l'"}envoyer.`
+      : null;
+  const note = unsavedNote
+    ? unsavedNote
+    : remaining === 0
       ? "Quota atteint : tes mails validés restent prêts, tu pourras les envoyer dans les prochaines heures."
       : count === 0
         ? "Valide au moins un mail pour pouvoir l'envoyer."
@@ -64,6 +73,7 @@ export function SendBar({
           </div>
           <div className="flex flex-col gap-1 md:items-end">
             <Button
+              ref={triggerRef}
               size="lg"
               className="w-full md:w-auto"
               disabled={blocked || pending}
@@ -98,10 +108,16 @@ export function SendBar({
           gmailEmail={gmailEmail}
           pending={pending}
           error={error}
-          onCancel={() => setConfirming(false)}
+          onCancel={() => {
+            setConfirming(false);
+            requestAnimationFrame(() => triggerRef.current?.focus());
+          }}
           onConfirm={async (ids) => {
             const ok = await onConfirm(ids);
-            if (ok) setConfirming(false);
+            if (ok) {
+              setConfirming(false);
+              requestAnimationFrame(() => triggerRef.current?.focus());
+            }
           }}
         />
       )}

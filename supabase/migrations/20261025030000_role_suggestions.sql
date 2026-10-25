@@ -20,11 +20,15 @@ alter table public.profiles
   add column if not exists role_suggestions    jsonb null,
   add column if not exists role_suggestions_at timestamptz null;
 
-alter table public.profiles
-  drop constraint if exists profiles_role_suggestions_is_object;
-alter table public.profiles
-  add constraint profiles_role_suggestions_is_object
-  check (role_suggestions is null or jsonb_typeof(role_suggestions) = 'object');
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'profiles_role_suggestions_is_object') then
+    alter table public.profiles
+      add constraint profiles_role_suggestions_is_object
+      check (role_suggestions is null or jsonb_typeof(role_suggestions) = 'object');
+  end if;
+end
+$$;
 
 comment on column public.profiles.role_suggestions is
   'Last output of prompt suggest_roles (coach d''orientation), validated server side.';

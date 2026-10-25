@@ -9,7 +9,7 @@ import {
 } from "@/lib/llm/client";
 import type { LlmCompletionRequest } from "@/lib/llm/providers/types";
 import { AnthropicProvider } from "@/lib/llm/providers/anthropic";
-import { OpenAiProvider } from "@/lib/llm/providers/openai";
+import { createOpenRouterProvider, OpenAiProvider } from "@/lib/llm/providers/openai";
 
 const schema = z.object({ name: z.string(), score: z.number().int().min(0).max(100) });
 
@@ -220,6 +220,49 @@ describe("providers", () => {
     expect(body.response_format).toEqual({ type: "json_object" });
     expect(body.model).toBe("gpt-x");
     expect(body.messages[0]).toEqual({ role: "system", content: "sys" });
+  });
+
+  it("OpenRouter provider targets the OpenRouter endpoint with max_tokens", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: '{"a":1}' } }],
+            usage: { prompt_tokens: 5, completion_tokens: 2 },
+          }),
+          { status: 200 },
+        ),
+    );
+    const p = createOpenRouterProvider({
+      apiKey: "sk-or-x",
+      appUrl: "https://app.example",
+      fetch: fetchMock as typeof fetch,
+    });
+    const res = await p.complete({
+      messages: [{ role: "user", content: "hi" }],
+      model: "openrouter/free",
+      maxTokens: 40,
+    });
+    expect(res.text).toBe('{"a":1}');
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://openrouter.ai/api/v1/chat/completions");
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer sk-or-x");
+    expect(headers["HTTP-Referer"]).toBe("https://app.example");
+    const body = JSON.parse(init.body as string);
+    expect(body.max_tokens).toBe(40);
+    expect(body.max_completion_tokens).toBeUndefined();
+  });
+
+  it("OpenRouter provider labels HTTP errors", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ error: { message: "rate limited" } }), { status: 429 }),
+    );
+    const p = createOpenRouterProvider({ apiKey: "k", fetch: fetchMock as typeof fetch });
+    await expect(
+      p.complete({ messages: [{ role: "user", content: "hi" }], model: "m", maxTokens: 1 }),
+    ).rejects.toThrow(/OpenRouter request failed \(429\).*rate limited/);
   });
 
   it("OpenAiProvider throws on HTTP errors", async () => {

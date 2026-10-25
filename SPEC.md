@@ -613,14 +613,14 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 - La vue `google_connection_status` est remplacée par une fonction `google_connection_status()` (appel `supabase.rpc`), mêmes garanties, sans alerte du linter Supabase. L'enum du statut Gmail s'appelle `google_connection_state`.
 - `send_log` est conservé si une candidature est supprimée (sinon on pourrait contourner le quota).
 - Le fichier CV dans Storage doit être supprimé explicitement lors de la suppression de compte (pas de cascade SQL vers Storage).
-- Fournisseur LLM par défaut : Anthropic. Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.
+- Fournisseur LLM : OpenRouter (`LLM_PROVIDER=openrouter`) avec le routeur gratuit `openrouter/free` pendant le développement, au choix du propriétaire. ⚠️ Les modèles gratuits peuvent conserver/utiliser les prompts : à réserver aux tests (CV fictifs ou du propriétaire) ; passer à un modèle payant sans rétention avant la bêta avec de vrais étudiants (RGPD). Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.
 
 ## 16. Avancement
 
 _(mis à jour par l'agent à la fin de chaque sprint)_
 
 - [x] Sprint 0 — Fondations (2026-10-25) : Next.js 16 + Tailwind + shadcn/ui + Vitest, connexion Google via Supabase, `proxy.ts` (ex-middleware), migration initiale + RLS + bucket `cvs` (19 tests SQL), `lib/crypto.ts`, `lib/llm/client.ts`, `lib/env.ts`, CI GitHub Actions.
-- [ ] Sprint 1
+- [x] Sprint 1 — Profil (2026-10-25) : upload direct navigateur → Storage, extraction PDF (unpdf), prompt `extract_profile@1` + garde-fou déterministe qui retire toute valeur absente du CV, formulaire éditable à sauvegarde automatique, préférences, remplacement du CV avec revue champ par champ, 3 CV fictifs + tests. Critère « < 20 s » et test réel du LLM à valider en ligne (`tests/live/`).
 - [ ] Sprint 2
 - [ ] Sprint 3
 - [ ] Sprint 4

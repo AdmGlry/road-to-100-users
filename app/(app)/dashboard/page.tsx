@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
 
@@ -33,6 +35,23 @@ export default function DashboardPage() {
       <Suspense fallback={<h1 className="text-2xl font-semibold tracking-tight">Bonjour</h1>}>
         <Greeting />
       </Suspense>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Ton profil</h2>
+          </CardTitle>
+          <CardDescription>
+            Importe ton CV et indique ce que tu cherches : c&apos;est la base de toutes tes
+            candidatures.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link href="/profile">Compléter mon profil</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

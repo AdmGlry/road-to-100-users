@@ -1,0 +1,43 @@
+{
+  "full_name": "Léa Moreau",
+  "email": "lea.moreau@example.com",
+  "phone": "06 00 00 00 01",
+  "city": "Nantes",
+  "school": "IAE Nantes",
+  "degree": "Master MSI",
+  "skills": ["SQL", "Excel", "Power BI", "Jira", "Confluence", "UML", "BPMN", "Scrum"],
+  "experiences": [
+    {
+      "title": "Assistante chef de projet MOA",
+      "company": "Banque Exemple Ouest",
+      "start": "avr. 2025",
+      "end": "juin 2025",
+      "bullets": [
+        "Rédaction de spécifications fonctionnelles pour une application de gestion de crédits",
+        "Animation d'ateliers de recueil des besoins avec les équipes métier",
+        "Recette fonctionnelle et suivi des anomalies sous Jira"
+      ]
+    },
+    {
+      "title": "Vendeuse en librairie",
+      "company": "Librairie du Centre",
+      "start": "juil. 2023",
+      "end": "août 2024",
+      "bullets": ["Conseil client, gestion de la caisse et des commandes"]
+    }
+  ],
+  "education": [
+    { "degree": "Master MSI", "school": "IAE Nantes", "start": "sept. 2025", "end": "juin 2027" },
+    {
+      "degree": "Licence Économie-Gestion",
+      "school": "Nantes Université",
+      "start": "sept. 2022",
+      "end": "juin 2025"
+    }
+  ],
+  "languages": [
+    { "language": "Anglais", "level": "B2 (TOEIC 850)" },
+    { "language": "Espagnol", "level": "notions" }
+  ],
+  "pitch": null
+}

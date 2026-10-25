@@ -55,7 +55,8 @@ export function CvChangesReview({
         e.preventDefault();
         if (!pending) onDismiss();
       }}
-      className="bg-background text-foreground m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl rounded-xl border p-0 shadow-lg backdrop:bg-black/50"
+      // True overlay: the one place an (ink-tinted, offset) shadow is allowed.
+      className="motion-dialog bg-background text-foreground m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl rounded-xl border p-0 shadow-[0_16px_48px_-12px_rgb(23_27_52/0.35)] backdrop:bg-[rgb(15_18_38/0.55)]"
     >
       <div className="flex max-h-[90dvh] flex-col">
         <div className="flex flex-col gap-1.5 border-b p-4 sm:p-6">
@@ -63,7 +64,7 @@ export function CvChangesReview({
             Changements trouvés dans ton nouveau CV
           </h2>
           <p id={descId} className="text-muted-foreground text-sm">
-            Coche ce que tu veux reprendre. Les champs non cochés gardent leur valeur actuelle, y
+            Coche ce que tu veux reprendre du nouveau CV. Ce que tu ne coches pas reste tel quel, y
             compris tes corrections.
           </p>
         </div>
@@ -112,7 +113,13 @@ export function CvChangesReview({
               onClick={() => onApply([...accepted])}
               disabled={pending || accepted.size === 0}
             >
-              {pending ? "Application…" : "Appliquer la sélection"}
+              {pending
+                ? "Mise à jour du profil…"
+                : accepted.size > 1
+                  ? `Reprendre ces ${accepted.size} changements`
+                  : accepted.size === 1
+                    ? "Reprendre ce changement"
+                    : "Reprendre la sélection"}
             </Button>
           </div>
         </div>
@@ -134,9 +141,7 @@ function ValueBlock({
     <div
       className={highlight ? "bg-secondary/60 min-w-0 rounded-md p-2" : "min-w-0 rounded-md p-2"}
     >
-      <p className="text-muted-foreground mb-1 text-xs font-medium tracking-wide uppercase">
-        {title}
-      </p>
+      <p className="text-muted-foreground mb-1 text-xs font-medium">{title}</p>
       {lines.length === 0 ? (
         <p className="text-muted-foreground text-sm italic">(vide)</p>
       ) : lines.length === 1 ? (

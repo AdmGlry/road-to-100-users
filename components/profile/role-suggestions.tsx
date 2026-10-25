@@ -71,6 +71,9 @@ export function RoleSuggestions({
   const [adding, setAdding] = useState<string | null>(null);
   const [addError, setAddError] = useState<{ title: string; message: string } | null>(null);
   const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
+  // True once the coach answered in this visit: its new content fades in, once.
+  // Suggestions loaded with the page appear without motion.
+  const [fresh, setFresh] = useState(false);
   const loadingRef = useRef(false);
   const hasSuggestionsRef = useRef(initialSuggestions !== null);
   const headingId = useId();
@@ -100,6 +103,7 @@ export function RoleSuggestions({
       }
       hasSuggestionsRef.current = true;
       setSuggestions(result.suggestions);
+      setFresh(true);
       setSelected({});
       setAddError(null);
       const n = result.suggestions.roles.length;
@@ -154,7 +158,8 @@ export function RoleSuggestions({
   const busy = disabled || loading;
 
   return (
-    <Card role="region" aria-labelledby={headingId}>
+    // id="metiers": deep link from the dashboard's next steps.
+    <Card id="metiers" role="region" aria-labelledby={headingId} className="scroll-mt-4">
       <CardHeader>
         <div className="flex items-center gap-3">
           <CoachAvatar />
@@ -187,7 +192,7 @@ export function RoleSuggestions({
             status.pendingAnswers.map((a) => (
               <AnswerPair key={`pending-${a.question}`} question={a.question} answer={a.answer} />
             ))}
-          {view && !loading && <CoachBubble>{view.summary}</CoachBubble>}
+          {view && !loading && <CoachBubble animate={fresh}>{view.summary}</CoachBubble>}
         </ol>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -205,7 +210,7 @@ export function RoleSuggestions({
             ) : (
               <SparklesIcon aria-hidden="true" />
             )}
-            {view ? "Actualiser" : "Me proposer des métiers"}
+            {view ? "Actualiser les suggestions" : "Me proposer des métiers"}
           </Button>
         </div>
 
@@ -228,14 +233,22 @@ export function RoleSuggestions({
 
         {view && view.roles.length > 0 && (
           <ul
-            className={cn("flex flex-col gap-3", loading && "opacity-60")}
+            className={cn(
+              "flex flex-col gap-3 transition-opacity duration-(--duration-base) ease-(--ease-out)",
+              loading && "opacity-60",
+            )}
             aria-label="Métiers suggérés"
             aria-busy={loading}
           >
-            {view.roles.map((role) => {
+            {view.roles.map((role, i) => {
               const inTargets = role.alreadyTargeted || added.has(titleKey(role.title));
               return (
-                <li key={role.title}>
+                <li
+                  key={role.title}
+                  className={cn(fresh && "motion-enter")}
+                  // 40ms stagger, decorative only: every card is usable at once.
+                  style={fresh ? { transitionDelay: `${i * 40}ms` } : undefined}
+                >
                   <RoleCard
                     role={role}
                     inTargets={inTargets}
@@ -251,7 +264,10 @@ export function RoleSuggestions({
         )}
 
         {view && view.questions.length > 0 && !loading && (
-          <section className="flex flex-col gap-3" aria-label="Questions du coach">
+          <section
+            className={cn("flex flex-col gap-3", fresh && "motion-enter")}
+            aria-label="Questions du coach"
+          >
             <p className="text-muted-foreground text-sm">
               Réponds à une ou plusieurs questions pour que le coach affine ses suggestions.
             </p>
@@ -303,9 +319,9 @@ function CoachAvatar() {
   );
 }
 
-function CoachBubble({ children }: { children: ReactNode }) {
+function CoachBubble({ children, animate = false }: { children: ReactNode; animate?: boolean }) {
   return (
-    <li className="flex items-start gap-2">
+    <li className={cn("flex items-start gap-2", animate && "motion-enter")}>
       <span className="sr-only">Coach :</span>
       <div className="bg-muted max-w-[90%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm wrap-anywhere sm:max-w-[80%]">
         {children}
@@ -334,9 +350,10 @@ function AnswerPair({ question, answer }: { question: string; answer: string }) 
   );
 }
 
-const FIT_BADGE: Record<RoleFit, "default" | "secondary" | "outline"> = {
-  fort: "default",
-  moyen: "secondary",
+/** Same semantics as the Chasseur score bands (DESIGN.md): green strong, amber medium. */
+const FIT_BADGE: Record<RoleFit, "success" | "warning" | "outline"> = {
+  fort: "success",
+  moyen: "warning",
   "à explorer": "outline",
 };
 
@@ -377,7 +394,7 @@ function RoleCard({
       </ul>
 
       {role.gap && (
-        <div className="bg-accent/60 border-border rounded-md border-l-4 px-3 py-2 text-sm">
+        <div className="bg-warning-soft rounded-md px-3 py-2 text-sm">
           <p className="font-medium">Point d&apos;attention</p>
           <p className="text-muted-foreground wrap-anywhere">{role.gap}</p>
         </div>

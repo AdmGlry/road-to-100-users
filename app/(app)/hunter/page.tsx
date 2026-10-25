@@ -66,14 +66,14 @@ async function HunterLoader() {
   return (
     <div className="flex flex-col gap-6">
       {profileIncomplete && (
-        <Card className="border-amber-300 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/40">
+        <Card className="border-warning/40 bg-warning-soft">
           <CardHeader>
             <CardTitle>
-              <h2 className="text-base">Ton profil est incomplet</h2>
+              <h2 className="text-base">Il manque tes postes visés ou ta ville</h2>
             </CardTitle>
             <CardDescription className="text-foreground/80">
-              Complète ton profil (postes visés, ville) pour lancer une recherche. Tu peux aussi
-              saisir tes critères directement ci-dessous.
+              Ajoute-les à ton profil pour que chaque recherche parte de là. Tu peux aussi les
+              saisir directement dans les critères ci-dessous.
             </CardDescription>
           </CardHeader>
           <CardContent>

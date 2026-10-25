@@ -63,14 +63,16 @@ export const SCORE_BAND_LABELS: Record<ScoreBand, string> = {
   unscored: "Non noté",
 };
 
-/** Tailwind classes per band (light + dark), contrast ≥ 4.5:1 for the text. */
+/**
+ * Semantic token classes per band (DESIGN.md "Colors"): dark mode follows the
+ * tokens, text contrast ≥ 4.5:1 in both themes. Always paired with the label.
+ */
 export const SCORE_BAND_CLASSES: Record<ScoreBand, string> = {
-  excellent:
-    "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100",
-  good: "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100",
-  fair: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100",
+  excellent: "border-transparent bg-success-soft text-success",
+  good: "border-secondary-foreground/20 bg-secondary text-secondary-foreground",
+  fair: "border-transparent bg-warning-soft text-warning",
   low: "border-border bg-muted text-foreground",
-  unscored: "border-border bg-muted text-muted-foreground",
+  unscored: "border-dashed border-input bg-transparent text-muted-foreground",
 };
 
 /** 85+ excellent, 70–84 good, 50–69 fair, < 50 low, null/invalid unscored. */

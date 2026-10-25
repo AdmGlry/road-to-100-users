@@ -195,7 +195,7 @@ export function LeadList({
           </CardHeader>
           <CardContent>
             <Button variant="outline" className="h-10" onClick={() => void load(filters)}>
-              Réessayer
+              Recharger les entreprises
             </Button>
           </CardContent>
         </Card>
@@ -335,7 +335,7 @@ function EmptyState({
         </CardTitle>
         <CardDescription>
           {filtered
-            ? "Assouplis les filtres (score, taille, distance) pour voir plus d'entreprises."
+            ? "Baisse le score minimum ou élargis la taille et la distance pour en voir plus."
             : "Essaie d'élargir le rayon de recherche, d'ajouter d'autres postes visés ou de retirer des secteurs, puis relance la recherche."}
         </CardDescription>
       </CardHeader>
@@ -369,7 +369,7 @@ function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "de
   );
   const note = (
     <p id={noteId} className="text-muted-foreground text-xs">
-      Disponible au Sprint 3 (rédaction et envoi). Ta sélection est enregistrée.
+      La rédaction et l&apos;envoi des mails arrivent bientôt. Ta sélection est déjà enregistrée.
     </p>
   );
 

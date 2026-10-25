@@ -138,7 +138,7 @@ export function HunterWorkspace({
               onClick={() => (formOpen ? setFormOpen(false) : openForm())}
               aria-expanded={formOpen}
               aria-controls={formRegionId}
-              className="focus-visible:ring-ring/50 -m-2 flex min-h-10 min-w-0 items-center justify-between gap-3 rounded-md p-2 text-left outline-none focus-visible:ring-[3px]"
+              className="-m-2 flex min-h-10 min-w-0 cursor-pointer items-center justify-between gap-3 rounded-md p-2 text-left"
             >
               <span className="flex min-w-0 flex-col gap-1">
                 <CardTitle>
@@ -156,7 +156,10 @@ export function HunterWorkspace({
                 <span className="hidden sm:inline">{formOpen ? "Fermer" : "Modifier"}</span>
                 <ChevronDownIcon
                   aria-hidden="true"
-                  className={cn("size-5 transition-transform", formOpen && "rotate-180")}
+                  className={cn(
+                    "size-5 transition-[rotate] duration-(--duration-base) ease-(--ease-out)",
+                    formOpen && "rotate-180",
+                  )}
                 />
               </span>
             </button>
@@ -171,7 +174,12 @@ export function HunterWorkspace({
             </>
           )}
         </CardHeader>
-        <CardContent id={formRegionId} hidden={!formOpen} className="flex flex-col gap-4">
+        <CardContent
+          id={formRegionId}
+          hidden={!formOpen}
+          // Reopening the collapsed criteria fades them in (not on first visit).
+          className={cn("flex flex-col gap-4", hasSearch && "motion-enter")}
+        >
           <SearchForm
             initialParams={formParams}
             onSubmit={(params) => void start(params)}
@@ -181,7 +189,8 @@ export function HunterWorkspace({
           />
           {running && (
             <p className="text-muted-foreground text-sm">
-              Une recherche est en cours : attends qu&apos;elle se termine pour en lancer une autre.
+              Une recherche est déjà en cours. Tu pourras en lancer une autre dès qu&apos;elle sera
+              terminée.
             </p>
           )}
           {startError && (
@@ -225,7 +234,7 @@ export function HunterWorkspace({
                 className="h-10"
                 onClick={() => void loadLeads(phase.searchId)}
               >
-                Réessayer
+                Recharger les résultats
               </Button>
             </CardContent>
           </Card>

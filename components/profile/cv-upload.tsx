@@ -161,7 +161,7 @@ export function CvUpload({
         }}
         onDrop={onDrop}
         className={cn(
-          "flex flex-col items-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+          "flex flex-col items-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-[background-color,border-color] duration-(--duration-fast) ease-(--ease-out)",
           dragging ? "border-primary bg-accent" : "border-border",
         )}
       >
@@ -195,9 +195,9 @@ export function CvUpload({
       </div>
 
       <div aria-live="polite" role="status" className="text-sm empty:hidden">
-        {phase.kind === "uploading" && <Progress label="Envoi du CV…" />}
+        {phase.kind === "uploading" && <Progress label="Envoi de ton CV…" />}
         {phase.kind === "analyzing" && (
-          <Progress label="Lecture du CV par l'IA… Cela prend en général 10 à 20 secondes." />
+          <Progress label="L'IA lit ton CV. Ça prend en général 10 à 20 secondes." />
         )}
         {phase.kind === "done" && (
           <p className="inline-flex items-start gap-2">
@@ -230,16 +230,12 @@ export function CvUpload({
   );
 }
 
+/** Spinner + honest label: no fake progress bar (the duration is unknown). */
 function Progress({ label }: { label: string }) {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="inline-flex items-center gap-2">
-        <LoaderCircleIcon aria-hidden="true" className="size-4 shrink-0 animate-spin" />
-        {label}
-      </p>
-      <div className="bg-secondary h-1.5 w-full overflow-hidden rounded-full" aria-hidden="true">
-        <div className="bg-primary h-full w-1/3 animate-pulse rounded-full" />
-      </div>
-    </div>
+    <p className="inline-flex items-center gap-2">
+      <LoaderCircleIcon aria-hidden="true" className="text-primary size-4 shrink-0 animate-spin" />
+      {label}
+    </p>
   );
 }

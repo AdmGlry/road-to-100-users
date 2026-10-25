@@ -164,6 +164,45 @@
   }
 }
 
+/*
+ * App motion (Operate mode): CSS transitions only, so every one is
+ * interruptible. Entrances use @starting-style and start from an
+ * already-visible state (4px offset, never scale(0)). The global
+ * prefers-reduced-motion rule below cuts all of them to 1ms.
+ */
+@layer components {
+  /* Something the student just revealed or changed: fade + 4px rise. */
+  .motion-enter {
+    transition-property: opacity, translate;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* Modal dialog: centred (not trigger-anchored), 0.97 → 1 with its backdrop. */
+  .motion-dialog[open] {
+    transition-property: opacity, scale;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-out);
+  }
+  .motion-dialog[open]::backdrop {
+    transition: background-color var(--duration-base) var(--ease-out);
+  }
+}
+
+@starting-style {
+  .motion-enter {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  .motion-dialog[open] {
+    opacity: 0;
+    scale: 0.97;
+  }
+  .motion-dialog[open]::backdrop {
+    background-color: transparent;
+  }
+}
+
 /* Display voice: Archivo widened. Landing headlines and the wordmark only. */
 @utility font-display {
   font-stretch: 118%;

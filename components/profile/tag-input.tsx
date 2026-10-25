@@ -64,8 +64,9 @@ export function TagInput({
     <div className="flex flex-col gap-2">
       <div
         className={cn(
-          "border-input flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border bg-transparent px-2 py-1.5 shadow-xs transition-[color,box-shadow]",
-          "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
+          "border-input bg-card flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border px-2 py-1.5",
+          // Same focus as <Input>: 2px solid ink outline, no offset (DESIGN.md).
+          "has-[input:focus-visible]:border-ring has-[input:focus-visible]:outline-ring has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-0 has-[input:focus-visible]:outline-solid",
           disabled && "cursor-not-allowed opacity-50",
         )}
       >
@@ -84,7 +85,7 @@ export function TagInput({
                   onClick={() => remove(index)}
                   disabled={disabled}
                   aria-label={`Retirer ${tag}`}
-                  className="hover:bg-background/70 focus-visible:ring-ring/50 active:bg-background/70 inline-flex size-7 shrink-0 items-center justify-center rounded-sm outline-none select-none focus-visible:ring-[3px] pointer-coarse:size-10"
+                  className="hover:bg-background/70 active:bg-background/70 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm select-none focus-visible:outline-offset-0 pointer-coarse:size-10"
                 >
                   <XIcon aria-hidden="true" className="size-3.5" />
                 </button>

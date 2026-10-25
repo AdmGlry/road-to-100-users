@@ -1,110 +1,49 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { latestSearchAction } from "@/app/(app)/hunter/actions";
+import { hasNoExtractedData } from "@/components/profile/profile-utils";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { loadEditableProfile } from "@/lib/profile/service";
+import { createClient } from "@/lib/supabase/server";
+
+import { NextSteps, NextStepsSkeleton, type DashboardProgress } from "./next-steps";
 
 export const metadata: Metadata = { title: "Tableau de bord · Spontané" };
 
-const ROADMAP = [
-  { sprint: 1, title: "Profil", description: "Import du CV et profil pré-rempli, éditable." },
-  { sprint: 2, title: "Chasseur", description: "Recherche d'entreprises notées selon ton profil." },
-  {
-    sprint: 3,
-    title: "Relecture & envoi",
-    description: "Connexion Gmail, mails personnalisés relus puis envoyés avec ton CV.",
-  },
-  {
-    sprint: 4,
-    title: "Suivi",
-    description: "Kanban mis à jour automatiquement, relances et alertes d'entretien.",
-  },
-  {
-    sprint: 5,
-    title: "Bêta",
-    description: "Onboarding guidé, gestion du compte et de tes données.",
-  },
-];
-
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <Suspense fallback={<h1 className="text-2xl font-semibold tracking-tight">Bonjour</h1>}>
-        <Greeting />
-      </Suspense>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <h2>Ton profil</h2>
-          </CardTitle>
-          <CardDescription>
-            Importe ton CV et indique ce que tu cherches : c&apos;est la base de toutes tes
-            candidatures.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild>
-            <Link href="/profile">Compléter mon profil</Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <h2>Chasseur</h2>
-          </CardTitle>
-          <CardDescription>
-            Trouve des entreprises près de chez toi, notées selon ton profil, et sélectionne celles
-            à qui envoyer une candidature spontanée.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild>
-            <Link href="/hunter">Lancer une recherche</Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <h2>Ce qui arrive</h2>
-          </CardTitle>
-          <CardDescription>Spontané se construit sprint par sprint.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ol className="flex flex-col gap-4">
-            {ROADMAP.map((item) => (
-              <li key={item.sprint} className="flex items-start gap-3">
-                <Badge variant="secondary" className="mt-0.5 shrink-0">
-                  Sprint {item.sprint}
-                </Badge>
-                <div>
-                  <p className="font-medium">{item.title}</p>
-                  <p className="text-muted-foreground text-sm">{item.description}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </CardContent>
-      </Card>
-    </div>
+    // The progress depends on the session (cookies): streamed behind Suspense.
+    <Suspense fallback={<NextStepsSkeleton />}>
+      <DashboardLoader />
+    </Suspense>
   );
 }
 
-async function Greeting() {
+async function DashboardLoader() {
   const user = await getCurrentUser();
-  return (
-    <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere">
-        Bonjour {user?.email ?? ""}
-      </h1>
-      <p className="text-muted-foreground">Bienvenue sur Spontané, ton compte est prêt.</p>
-    </div>
-  );
+  if (!user) redirect("/login");
+
+  let progress: DashboardProgress | null = null;
+  try {
+    const supabase = await createClient();
+    const [{ profile, hasCv }, latest] = await Promise.all([
+      loadEditableProfile(supabase, user.id),
+      latestSearchAction(),
+    ]);
+    const search = latest.ok ? latest.search : null;
+    progress = {
+      firstName: profile.full_name?.trim().split(/\s+/)[0] || null,
+      profileDone: hasCv || !hasNoExtractedData(profile, user.email),
+      rolesCount: profile.target_roles.length,
+      leadsCount: search?.status === "done" ? search.results_count : null,
+      searchRunning: search?.status === "running",
+    };
+  } catch {
+    // Shown as a recoverable message; the steps stay usable as plain links.
+    progress = null;
+  }
+
+  return <NextSteps progress={progress} />;
 }

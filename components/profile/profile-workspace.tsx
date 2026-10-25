@@ -44,7 +44,7 @@ export function ProfileWorkspace({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className={cn(!hasCv && "border-primary/40 shadow-md")}>
+      <Card className={cn(!hasCv && "border-primary")}>
         <CardHeader>
           <CardTitle>
             <h2 className="text-lg">{hasCv ? "Ton CV" : "Commence par ton CV"}</h2>

@@ -44,6 +44,9 @@ export function LeadCard({
   onUndoDismiss: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  // Animate the swap card ⇄ "ignorée" row only after the student acted on it,
+  // never on the first render of the list.
+  const [touched, setTouched] = useState(false);
   const uid = useId();
   const titleId = `${uid}-title`;
   const detailsId = `${uid}-details`;
@@ -52,7 +55,10 @@ export function LeadCard({
     return (
       <div
         role="status"
-        className="bg-muted/50 flex h-full flex-wrap items-center justify-between gap-2 rounded-xl border border-dashed px-4 py-3 text-sm"
+        className={cn(
+          "bg-muted/50 flex h-full flex-wrap items-center justify-between gap-2 rounded-xl border border-dashed px-4 py-3 text-sm",
+          touched && "motion-enter",
+        )}
       >
         <span className="text-muted-foreground min-w-0 wrap-anywhere">
           <span className="text-foreground font-medium" dir="auto" translate="no">
@@ -60,7 +66,13 @@ export function LeadCard({
           </span>{" "}
           ignorée.
         </span>
-        <Button variant="outline" size="sm" onClick={onUndoDismiss} className="h-10">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onUndoDismiss}
+          className="h-10"
+          aria-label={`Annuler : remettre ${lead.name} dans la liste`}
+        >
           Annuler
         </Button>
       </div>
@@ -84,8 +96,11 @@ export function LeadCard({
     <article
       aria-labelledby={titleId}
       className={cn(
-        "bg-card text-card-foreground flex h-full flex-col gap-3 rounded-xl border p-4 shadow-sm transition-colors",
-        selected && "border-primary ring-primary/30 ring-2",
+        "bg-card text-card-foreground flex h-full flex-col gap-3 rounded-xl border p-4",
+        // Selection = ink border + ink-tinted paper (flat, no ring or shadow).
+        "transition-[background-color,border-color,opacity,translate] duration-(--duration-fast) ease-(--ease-out)",
+        selected && "border-primary bg-secondary/40",
+        touched && "motion-enter",
       )}
     >
       <div className="flex items-start gap-3">
@@ -115,7 +130,7 @@ export function LeadCard({
         </div>
         <span
           className={cn(
-            "inline-flex shrink-0 items-center rounded-md border px-2 py-1 text-xs font-semibold whitespace-nowrap tabular-nums",
+            "inline-flex shrink-0 items-center rounded-sm border px-2 py-1 text-xs font-semibold whitespace-nowrap tabular-nums",
             SCORE_BAND_CLASSES[band],
           )}
         >
@@ -146,7 +161,8 @@ export function LeadCard({
       {shownReasons.length > 0 && (
         <ul className="flex flex-col gap-1 text-sm" aria-label="Pourquoi cette entreprise">
           {shownReasons.map((reason, i) => (
-            <li key={i} className="flex gap-2">
+            // Reasons revealed by "Voir plus" fade in; the first three never move.
+            <li key={i} className={cn("flex gap-2", i >= 3 && "motion-enter")}>
               <span aria-hidden="true" className="text-muted-foreground">
                 •
               </span>
@@ -160,13 +176,13 @@ export function LeadCard({
       )}
 
       {expanded && (
-        <div id={detailsId} className="flex flex-col gap-2 text-sm">
+        <div id={detailsId} className="motion-enter flex flex-col gap-2 text-sm">
           {companyUrl ? (
             <a
               href={companyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary inline-flex min-h-10 w-fit items-center gap-1.5 underline-offset-4 hover:underline"
+              className="text-primary decoration-primary/40 hover:decoration-primary inline-flex min-h-10 w-fit items-center gap-1.5 underline underline-offset-4"
             >
               Voir la fiche sur l&apos;Annuaire des entreprises
               <ExternalLinkIcon aria-hidden="true" className="size-3.5" />
@@ -203,7 +219,10 @@ export function LeadCard({
               {expanded ? "Voir moins" : "Voir plus"}
               <ChevronDownIcon
                 aria-hidden="true"
-                className={cn("transition-transform", expanded && "rotate-180")}
+                className={cn(
+                  "transition-[rotate] duration-(--duration-base) ease-(--ease-out)",
+                  expanded && "rotate-180",
+                )}
               />
             </Button>
           )}
@@ -212,7 +231,10 @@ export function LeadCard({
               variant="ghost"
               size="sm"
               className="h-10"
-              onClick={onDismiss}
+              onClick={() => {
+                setTouched(true);
+                onDismiss();
+              }}
               aria-label={`Ignorer ${lead.name}`}
             >
               <EyeOffIcon aria-hidden="true" />

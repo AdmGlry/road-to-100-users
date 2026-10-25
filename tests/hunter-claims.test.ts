@@ -8,35 +8,7 @@ import {
   countWords,
   findBannedWords,
 } from "@/lib/hunter/claims";
-import type { EditableProfile } from "@/lib/profile/schema";
-
-export const PROFILE: EditableProfile = {
-  full_name: "Camille Durand",
-  email: "camille@example.com",
-  phone: "06 12 34 56 78",
-  city: "Nantes",
-  school: "IAE Nantes",
-  degree: "Master MSI",
-  skills: ["SQL", "Power BI", "Gestion de projet", "R"],
-  experiences: [
-    {
-      title: "Stage assistante MOA",
-      company: "Banque Populaire",
-      start: "avril 2025",
-      end: "août 2025",
-      bullets: ["Rédaction de spécifications fonctionnelles pour 3 applications", "Recette des évolutions"],
-    },
-  ],
-  education: [{ degree: "Licence MIASHS", school: "Université de Nantes", start: null, end: "2024" }],
-  languages: [{ language: "Anglais", level: "B2" }],
-  pitch: "Étudiante en Master MSI, j'aime relier métier et données.",
-  contract_type: "alternance",
-  rhythm: "3 semaines entreprise / 1 semaine école",
-  start_date: "2027-09-01",
-  target_roles: ["Business Analyst"],
-  target_sectors: ["Banque"],
-  search_radius_km: 30,
-};
+import { PROFILE } from "./fixtures/enrich";
 
 describe("buildProfileCorpus", () => {
   it("contains profile values, French start date, phone digits but not the e-mail", () => {
@@ -89,9 +61,9 @@ describe("checkClaims", () => {
   });
 
   it("is accent and case insensitive", () => {
-    expect(checkClaims(["RECETTE DES EVOLUTIONS", "université de nantes"], PROFILE).unverified).toEqual(
-      [],
-    );
+    expect(
+      checkClaims(["RECETTE DES EVOLUTIONS", "université de nantes"], PROFILE).unverified,
+    ).toEqual([]);
   });
 });
 
@@ -134,7 +106,13 @@ describe("checkMail / analyzeMail", () => {
       PROFILE,
     );
     expect(problems.map((p) => p.code).sort()).toEqual(
-      ["banned_words", "claims_unverified", "subject_length", "unknown_numbers", "word_count"].sort(),
+      [
+        "banned_words",
+        "claims_unverified",
+        "subject_length",
+        "unknown_numbers",
+        "word_count",
+      ].sort(),
     );
   });
 
@@ -145,7 +123,9 @@ describe("checkMail / analyzeMail", () => {
   });
 
   it("flags an empty claims list and an empty subject", () => {
-    const codes = analyzeMail({ ...good, subject: " ", claims_used: [] }, PROFILE).map((p) => p.code);
+    const codes = analyzeMail({ ...good, subject: " ", claims_used: [] }, PROFILE).map(
+      (p) => p.code,
+    );
     expect(codes).toEqual(["claims_missing", "subject_empty"]);
   });
 });

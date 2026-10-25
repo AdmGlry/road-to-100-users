@@ -18,7 +18,12 @@ import { z } from "zod";
 
 import { getGmailStatus } from "@/lib/google/connection";
 import { MAX_PREPARE_AT_ONCE, type ReviewState } from "@/lib/hunter/application-types";
-import { queuePreparation, regenerateApplication, runPreparation } from "@/lib/hunter/prepare";
+import {
+  PrepareError,
+  queuePreparation,
+  regenerateApplication,
+  runPreparation,
+} from "@/lib/hunter/prepare";
 import {
   approveApplication,
   changeContact,
@@ -87,7 +92,8 @@ function logFailure(action: string, err: unknown) {
 }
 
 function errorMessage(err: unknown, fallback = GENERIC_ERROR): string {
-  return err instanceof ReviewError ? err.userMessage : fallback;
+  if (err instanceof ReviewError || err instanceof PrepareError) return err.userMessage;
+  return fallback;
 }
 
 /** Fresh state after a mutation; null (not an error) if only the reload failed. */
@@ -171,7 +177,10 @@ export async function startPreparationAction(leadIds: string[]): Promise<StartPr
     logFailure("startPreparation", err);
     return {
       ok: false,
-      message: "Impossible de lancer la préparation pour le moment. Réessaie dans un instant.",
+      message: errorMessage(
+        err,
+        "Impossible de lancer la préparation pour le moment. Réessaie dans un instant.",
+      ),
     };
   }
 }

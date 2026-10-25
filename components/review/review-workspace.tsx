@@ -118,7 +118,8 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
   const counts = countItems(state.items);
   const gmail = state.gmail;
   const gmailReady = gmail.state === "active" && !gmail.missingScopes;
-  const gmailBroken = !gmail.missingScopes && (gmail.state === "expired" || gmail.state === "revoked");
+  const gmailBroken =
+    !gmail.missingScopes && (gmail.state === "expired" || gmail.state === "revoked");
   const hasItems = state.items.length > 0;
   const preparingCount = activePreparations(state);
   const nothingAtAll = !hasItems && state.preparing.length === 0;
@@ -193,8 +194,8 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
               <h2 className="text-lg">Aucun mail à relire pour le moment</h2>
             </CardTitle>
             <CardDescription>
-              Sélectionne des entreprises dans le Chasseur puis clique sur « Préparer N
-              candidatures » : on trouve le bon contact et on rédige un mail pour chacune.
+              Sélectionne des entreprises dans le Chasseur puis clique sur « Préparer N candidatures
+              » : on trouve le bon contact et on rédige un mail pour chacune.
             </CardDescription>
           </CardHeader>
           <CardContent>

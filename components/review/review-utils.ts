@@ -116,7 +116,9 @@ export function formatTime(iso: string | null | undefined): string | null {
 }
 
 /** Short status shown on each card. */
-export function statusLabel(item: Pick<ReviewItem, "status" | "scheduled_for" | "send_error" | "sent_at">): string {
+export function statusLabel(
+  item: Pick<ReviewItem, "status" | "scheduled_for" | "send_error" | "sent_at">,
+): string {
   const phase = itemPhase(item);
   switch (phase) {
     case "draft":

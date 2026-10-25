@@ -314,7 +314,7 @@ const LINK_KEYWORDS = /contact|recrut|carri|emploi|jobs?\b|rejoindre|join|mentio
 export function discoverLinks(html: string, pageUrl: URL, domain: string): string[] {
   const base = registrableDomain(domain);
   const out: string[] = [];
-  for (const m of html.matchAll(/href\s*=\s*["']([^"'#]+)["']/gi)) {
+  for (const m of html.matchAll(/href\s*=\s*["']([^"']+)["']/gi)) {
     let u: URL;
     try {
       u = new URL(decodeEntities(m[1]), pageUrl);

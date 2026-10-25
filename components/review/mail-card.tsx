@@ -325,8 +325,8 @@ export function MailCard({
             avant de valider
           </p>
           <p className="text-foreground/90">
-            Ces éléments du mail n&apos;ont pas été retrouvés dans ton profil. S&apos;ils sont
-            faux, corrige le mail : on ne doit jamais affirmer ce que tu n&apos;as pas fait.
+            Ces éléments du mail n&apos;ont pas été retrouvés dans ton profil. S&apos;ils sont faux,
+            corrige le mail : on ne doit jamais affirmer ce que tu n&apos;as pas fait.
           </p>
           <ul className="text-foreground list-disc pl-5">
             {item.claims_unverified.map((claim, i) => (
@@ -399,7 +399,9 @@ export function MailCard({
               Annuler
             </Button>
             <Button onClick={() => void save()} disabled={busy || !subject.trim() || !body.trim()}>
-              {pending === "save" && <LoaderCircleIcon aria-hidden="true" className="animate-spin" />}
+              {pending === "save" && (
+                <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+              )}
               Enregistrer
             </Button>
           </div>
@@ -516,11 +518,7 @@ export function MailCard({
                 Oui, ignorer
               </Button>
             ) : (
-              <Button
-                variant="outline"
-                disabled={busy}
-                onClick={() => void regenerate()}
-              >
+              <Button variant="outline" disabled={busy} onClick={() => void regenerate()}>
                 Oui, régénérer
               </Button>
             )}

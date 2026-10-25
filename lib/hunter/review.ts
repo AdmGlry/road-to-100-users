@@ -36,13 +36,7 @@ export const SUBJECT_HARD_MAX = 120;
 export const BODY_HARD_MAX = 5000;
 
 export type ReviewErrorCode =
-  | "not_found"
-  | "locked"
-  | "invalid"
-  | "no_contact"
-  | "invalid_email"
-  | "empty"
-  | "db";
+  "not_found" | "locked" | "invalid" | "no_contact" | "invalid_email" | "empty" | "db";
 
 const REVIEW_MESSAGES: Record<ReviewErrorCode, string> = {
   not_found: "Ce mail est introuvable. Recharge la page.",
@@ -68,7 +62,9 @@ export class ReviewError extends Error {
 }
 
 function dbError(what: string, error: { code?: string } | null): ReviewError {
-  return new ReviewError("db", { cause: new Error(`${what} failed (${error?.code ?? "unknown"})`) });
+  return new ReviewError("db", {
+    cause: new Error(`${what} failed (${error?.code ?? "unknown"})`),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +72,11 @@ function dbError(what: string, error: { code?: string } | null): ReviewError {
 // ---------------------------------------------------------------------------
 
 /** Header values must never contain CR/LF (MIME header injection). */
-const oneLine = (s: string) => s.replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim();
+const oneLine = (s: string) =>
+  s
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
 export const mailContentSchema = z.object({
   subject: z.string().transform(oneLine).pipe(z.string().min(1).max(SUBJECT_HARD_MAX)),
@@ -94,12 +94,7 @@ const nameSchema = z
   .optional()
   .transform((s) => (s ? s : null));
 
-export const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .max(254)
-  .pipe(z.email());
+export const emailSchema = z.string().trim().toLowerCase().max(254).pipe(z.email());
 
 export const changeContactInputSchema = z.union([
   z.object({ contactId: z.uuid() }).strict(),
@@ -180,9 +175,9 @@ type PrepLeadRow = {
 const CONFIDENCE_RANK: Record<ContactConfidence, number> = { high: 0, medium: 1, low: 2 };
 
 /** Best candidates first (confidence, then insertion order). */
-export function sortContacts<T extends { confidence: ContactConfidence; created_at?: string | null }>(
-  contacts: readonly T[],
-): T[] {
+export function sortContacts<
+  T extends { confidence: ContactConfidence; created_at?: string | null },
+>(contacts: readonly T[]): T[] {
   return [...contacts].sort(
     (a, b) =>
       CONFIDENCE_RANK[a.confidence] - CONFIDENCE_RANK[b.confidence] ||
@@ -212,9 +207,9 @@ export function isSentStatus(status: ApplicationStatus): boolean {
  * order never changes when a mail is validated, so cards do not jump), then
  * sent mails, most recent first.
  */
-export function sortReviewItems<T extends { item: ReviewItem; fit: number | null; created: string }>(
-  rows: readonly T[],
-): ReviewItem[] {
+export function sortReviewItems<
+  T extends { item: ReviewItem; fit: number | null; created: string },
+>(rows: readonly T[]): ReviewItem[] {
   return [...rows]
     .sort((a, b) => {
       const sa = isSentStatus(a.item.status) ? 1 : 0;
@@ -599,7 +594,10 @@ export async function dismissFailedLead(
 }
 
 /** "Bonjour Prénom Nom," when the name is known, else "Bonjour,". */
-export function greetingFor(contact: { first_name: string | null; last_name: string | null }): string {
+export function greetingFor(contact: {
+  first_name: string | null;
+  last_name: string | null;
+}): string {
   const name = [contact.first_name, contact.last_name]
     .map((s) => s?.trim())
     .filter(Boolean)
@@ -655,8 +653,7 @@ export async function changeContact(
       .limit(1);
     if (findError) throw dbError("contacts select (email)", findError);
     const found = (existing ?? [])[0] as
-      | { id: string; first_name: string | null; last_name: string | null }
-      | undefined;
+      { id: string; first_name: string | null; last_name: string | null } | undefined;
     if (found) {
       const names = {
         first_name: input.first_name ?? found.first_name,

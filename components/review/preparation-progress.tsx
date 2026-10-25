@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  AlertCircleIcon,
-  CircleIcon,
-  LoaderCircleIcon,
-  RotateCwIcon,
-  XIcon,
-} from "lucide-react";
+import { AlertCircleIcon, CircleIcon, LoaderCircleIcon, RotateCwIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -81,7 +75,10 @@ export function PreparationProgress({
                       className="text-primary mt-0.5 size-4 shrink-0 animate-spin motion-reduce:animate-none"
                     />
                   ) : (
-                    <CircleIcon aria-hidden="true" className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                    <CircleIcon
+                      aria-hidden="true"
+                      className="text-muted-foreground mt-0.5 size-4 shrink-0"
+                    />
                   )}
                   <span className="min-w-0 wrap-anywhere">
                     <span className="font-medium" translate="no">

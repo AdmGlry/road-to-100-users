@@ -3,11 +3,7 @@
 import { LoaderCircleIcon, SendIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import {
-  quotaLabel,
-  sendButtonLabel,
-  sendDurationLabel,
-} from "@/components/review/review-utils";
+import { quotaLabel, sendButtonLabel, sendDurationLabel } from "@/components/review/review-utils";
 import { Button } from "@/components/ui/button";
 import {
   SEND_SPACING_MAX_S,
@@ -183,7 +179,10 @@ function ConfirmSendDialog({
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 sm:p-6">
           <ul className="flex flex-col gap-2 text-sm" aria-label="Mails envoyés">
             {items.map((item) => (
-              <li key={item.applicationId} className="flex min-w-0 flex-col rounded-md border p-2.5">
+              <li
+                key={item.applicationId}
+                className="flex min-w-0 flex-col rounded-md border p-2.5"
+              >
                 <span className="font-medium wrap-anywhere" translate="no">
                   {item.company.name}
                 </span>
@@ -208,7 +207,9 @@ function ConfirmSendDialog({
                 {extra > 1 ? "s" : ""} attendr{extra > 1 ? "ont" : "a"} que ton quota se libère.
               </li>
             )}
-            <li>Tant qu&apos;un mail est en file d&apos;attente, tu peux encore annuler son envoi.</li>
+            <li>
+              Tant qu&apos;un mail est en file d&apos;attente, tu peux encore annuler son envoi.
+            </li>
           </ul>
         </div>
 
@@ -219,7 +220,13 @@ function ConfirmSendDialog({
             </p>
           )}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button ref={cancelRef} type="button" variant="outline" onClick={onCancel} disabled={pending}>
+            <Button
+              ref={cancelRef}
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={pending}
+            >
               Annuler
             </Button>
             <Button

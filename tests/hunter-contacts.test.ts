@@ -95,7 +95,11 @@ describe("buildContactCandidates", () => {
       headcountMin: 3,
       websiteEmails: [{ email: "jean-eric.le-gall@acme.fr" }, { email: "jobs@acme.fr" }],
     });
-    expect(list[0]).toMatchObject({ email: "jean-eric.le-gall@acme.fr", source: "website", confidence: "high" });
+    expect(list[0]).toMatchObject({
+      email: "jean-eric.le-gall@acme.fr",
+      source: "website",
+      confidence: "high",
+    });
     expect(list[1]).toMatchObject({ email: "jobs@acme.fr", confidence: "high" });
   });
 
@@ -125,10 +129,7 @@ describe("buildContactCandidates", () => {
     const list = buildContactCandidates({
       ...base,
       headcountMin: 10,
-      leaders: [
-        { first_name: "Paul", last_name: "Martin", role: "Directeur" },
-        LEADER,
-      ],
+      leaders: [{ first_name: "Paul", last_name: "Martin", role: "Directeur" }, LEADER],
     });
     expect(list.length).toBeLessThanOrEqual(8);
     // Président ranks before Directeur.
@@ -167,7 +168,10 @@ describe("findContacts", () => {
   it("no website nor domain → []", async () => {
     const find = vi.fn();
     expect(
-      await findContacts({ ...COMPANY, website: null }, { findEmailsOnWebsite: find, hasMxRecord: find }),
+      await findContacts(
+        { ...COMPANY, website: null },
+        { findEmailsOnWebsite: find, hasMxRecord: find },
+      ),
     ).toEqual([]);
     expect(find).not.toHaveBeenCalled();
   });
@@ -182,7 +186,9 @@ describe("hasMxRecord", () => {
   });
   it("false for null MX, ENODATA, timeouts and invalid hosts", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await hasMxRecord("a.fr", { resolveMx: async () => [{ exchange: ".", priority: 0 }] })).toBe(false);
+    expect(
+      await hasMxRecord("a.fr", { resolveMx: async () => [{ exchange: ".", priority: 0 }] }),
+    ).toBe(false);
     expect(
       await hasMxRecord("b.fr", {
         resolveMx: async () => {

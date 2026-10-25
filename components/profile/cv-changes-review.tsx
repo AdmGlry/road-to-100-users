@@ -1,0 +1,154 @@
+"use client";
+
+import { useEffect, useId, useRef, useState } from "react";
+
+import { formatFieldValue } from "@/components/profile/profile-utils";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { FieldChange } from "@/lib/profile/service";
+
+/**
+ * Modal shown after "Remplacer mon CV": one checkbox per changed field,
+ * current vs proposed values. Uses the native <dialog> element (focus
+ * trap, Escape and inert background for free). Escape = keep the profile.
+ */
+export function CvChangesReview({
+  changes,
+  pending,
+  error,
+  onApply,
+  onDismiss,
+}: {
+  changes: FieldChange[];
+  pending: boolean;
+  error: string | null;
+  onApply: (acceptedFields: string[]) => void;
+  onDismiss: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const descId = useId();
+  const [accepted, setAccepted] = useState<Set<string>>(
+    () => new Set(changes.filter((c) => c.defaultAccept).map((c) => c.field)),
+  );
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+    return () => dialog?.close();
+  }, []);
+
+  const toggle = (field: string, checked: boolean) =>
+    setAccepted((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(field);
+      else next.delete(field);
+      return next;
+    });
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-describedby={descId}
+      onCancel={(e) => {
+        e.preventDefault();
+        if (!pending) onDismiss();
+      }}
+      className="bg-background text-foreground m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl rounded-xl border p-0 shadow-lg backdrop:bg-black/50"
+    >
+      <div className="flex max-h-[90dvh] flex-col">
+        <div className="flex flex-col gap-1.5 border-b p-4 sm:p-6">
+          <h2 id={titleId} className="text-lg font-semibold">
+            Changements trouvés dans ton nouveau CV
+          </h2>
+          <p id={descId} className="text-muted-foreground text-sm">
+            Coche ce que tu veux reprendre. Les champs non cochés gardent leur valeur actuelle, y
+            compris tes corrections.
+          </p>
+        </div>
+
+        <ul className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-6">
+          {changes.map((change) => {
+            const checkboxId = `${titleId}-${change.field}`;
+            const current = formatFieldValue(change.field, change.current);
+            const proposed = formatFieldValue(change.field, change.proposed);
+            return (
+              <li key={change.field} className="rounded-lg border p-3 sm:p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id={checkboxId}
+                    checked={accepted.has(change.field)}
+                    onChange={(e) => toggle(change.field, e.target.checked)}
+                    disabled={pending}
+                    className="mt-0.5"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col gap-3">
+                    <label htmlFor={checkboxId} className="text-sm font-medium">
+                      {change.label}
+                    </label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <ValueBlock title="Actuel" lines={current} />
+                      <ValueBlock title="Dans le nouveau CV" lines={proposed} highlight />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="flex flex-col gap-3 border-t p-4 sm:p-6">
+          {error && (
+            <p role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          )}
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={onDismiss} disabled={pending}>
+              Garder mon profil actuel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => onApply([...accepted])}
+              disabled={pending || accepted.size === 0}
+            >
+              {pending ? "Application…" : "Appliquer la sélection"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+function ValueBlock({
+  title,
+  lines,
+  highlight = false,
+}: {
+  title: string;
+  lines: string[];
+  highlight?: boolean;
+}) {
+  return (
+    <div className={highlight ? "bg-secondary/60 rounded-md p-2" : "rounded-md p-2"}>
+      <p className="text-muted-foreground mb-1 text-xs font-medium tracking-wide uppercase">
+        {title}
+      </p>
+      {lines.length === 0 ? (
+        <p className="text-muted-foreground text-sm italic">(vide)</p>
+      ) : lines.length === 1 ? (
+        <p className="text-sm break-words whitespace-pre-line">{lines[0]}</p>
+      ) : (
+        <ul className="list-disc pl-5 text-sm">
+          {lines.map((line, i) => (
+            <li key={i} className="break-words">
+              {line}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

@@ -620,7 +620,7 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 _(mis à jour par l'agent à la fin de chaque sprint)_
 
 - [x] Sprint 0 — Fondations (2026-10-25) : Next.js 16 + Tailwind + shadcn/ui + Vitest, connexion Google via Supabase, `proxy.ts` (ex-middleware), migration initiale + RLS + bucket `cvs` (19 tests SQL), `lib/crypto.ts`, `lib/llm/client.ts`, `lib/env.ts`, CI GitHub Actions.
-- [ ] Sprint 1
+- [x] Sprint 1 — Profil (2026-10-25) : upload direct navigateur → Storage, extraction PDF (unpdf), prompt `extract_profile@1` + garde-fou déterministe qui retire toute valeur absente du CV, formulaire éditable à sauvegarde automatique, préférences, remplacement du CV avec revue champ par champ, 3 CV fictifs + tests. Critère « < 20 s » et test réel du LLM à valider en ligne (`tests/live/`).
 - [ ] Sprint 2
 - [ ] Sprint 3
 - [ ] Sprint 4

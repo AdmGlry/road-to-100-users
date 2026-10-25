@@ -605,11 +605,21 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 
 ---
 
-## 15. Avancement
+## 15. Décisions prises (écarts par rapport à la spec)
+
+- Next.js 16 : le middleware s'appelle désormais `proxy.ts`.
+- `contacts` et `replies` ont une colonne `user_id` (RLS plus simple et plus sûre).
+- `applications` : colonnes `scheduled_for` (file d'envoi traitée chaque minute, via `pg_cron` Supabase au Sprint 3), `followup_subject`, `followup_body`, `send_error`.
+- L'enum du statut Gmail s'appelle `google_connection_state` (le nom `google_connection_status` est pris par la vue).
+- `send_log` est conservé si une candidature est supprimée (sinon on pourrait contourner le quota).
+- Le fichier CV dans Storage doit être supprimé explicitement lors de la suppression de compte (pas de cascade SQL vers Storage).
+- Fournisseur LLM par défaut : Anthropic. Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.
+
+## 16. Avancement
 
 _(mis à jour par l'agent à la fin de chaque sprint)_
 
-- [ ] Sprint 0
+- [x] Sprint 0 — Fondations (2026-10-25) : Next.js 16 + Tailwind + shadcn/ui + Vitest, connexion Google via Supabase, `proxy.ts` (ex-middleware), migration initiale + RLS + bucket `cvs` (19 tests SQL), `lib/crypto.ts`, `lib/llm/client.ts`, `lib/env.ts`, CI GitHub Actions.
 - [ ] Sprint 1
 - [ ] Sprint 2
 - [ ] Sprint 3

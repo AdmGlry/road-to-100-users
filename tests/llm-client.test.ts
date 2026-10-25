@@ -286,6 +286,19 @@ describe("providers", () => {
     expect(JSON.parse(init.body as string).models).toBeUndefined();
   });
 
+  it("OpenAI-compatible provider sends an abort signal (request timeout)", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+          status: 200,
+        }),
+    );
+    const p = createOpenRouterProvider({ apiKey: "k", fetch: fetchMock as typeof fetch });
+    await p.complete({ messages: [{ role: "user", content: "hi" }], model: "m", maxTokens: 1 });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("OpenRouter provider labels HTTP errors", async () => {
     const fetchMock = vi.fn(
       async () =>

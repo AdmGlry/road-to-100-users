@@ -77,7 +77,7 @@ async function HunterLoader() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="h-10">
               <Link href="/profile">Compléter mon profil</Link>
             </Button>
           </CardContent>

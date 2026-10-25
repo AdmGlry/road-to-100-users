@@ -36,6 +36,8 @@ export type ScoreOptions = {
   onUsage?: (event: LlmUsageEvent) => void | Promise<void>;
   batchSize?: number;
   concurrency?: number;
+  /** Epoch ms after which remaining batches use the pre-filter score (no LLM call). */
+  deadlineAt?: number;
   /** Called after each batch (success or fallback) with the number of batches done. */
   onBatchDone?: (done: number, total: number) => void | Promise<void>;
 };
@@ -111,6 +113,9 @@ export async function scoreCompanies(
     async (batch) => {
       let scored: ScoredCompany[];
       try {
+        if (opts.deadlineAt !== undefined && Date.now() > opts.deadlineAt) {
+          throw new Error("scoring deadline reached");
+        }
         const { system, prompt } = buildScoreFitPrompt(
           profile,
           batch.map((c) => ({

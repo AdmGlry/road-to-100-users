@@ -24,6 +24,8 @@ import { hunterSearchParamsSchema, type HunterSearchParams } from "@/lib/hunter/
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+/** Max searches per student per rolling 24 h (shared free LLM quota). */
+const MAX_SEARCHES_PER_DAY = 10;
 const SESSION_EXPIRED = "Ta session a expiré. Reconnecte-toi puis réessaie.";
 const GENERIC_ERROR = "Une erreur est survenue. Réessaie dans un instant.";
 const INVALID_PARAMS =
@@ -148,11 +150,30 @@ export async function startSearchAction(params: HunterSearchParams): Promise<Sta
       return { ok: true, searchId: latest.id, resumed: true };
     }
 
+    // Daily cap per student: the free LLM quota is shared by the whole app.
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from("searches")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", since);
+    if (countError) throw countError;
+    if ((count ?? 0) >= MAX_SEARCHES_PER_DAY) {
+      return {
+        ok: false,
+        message: `Tu as atteint la limite de ${MAX_SEARCHES_PER_DAY} recherches par 24 h. Reviens un peu plus tard, ou travaille les entreprises déjà trouvées.`,
+      };
+    }
+
     const searchId = await startSearch(supabase, user.id, parsed.data);
 
     after(async () => {
       try {
-        await runSearch(supabase, admin, searchId, user.id);
+        // The background job uses the service-role client (every query in
+        // runSearch is filtered on the user id verified above). Using the
+        // cookie-bound client here could rotate the refresh token after the
+        // response is sent and log the student out.
+        await runSearch(admin, admin, searchId, user.id);
       } catch (err) {
         logFailure("runSearch", err);
         // Safety net: never leave a search "running" forever if the job crashed.

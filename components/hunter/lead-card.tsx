@@ -84,14 +84,10 @@ export function LeadCard({
             {lead.name}
           </h3>
           {lead.naf_label && (
-            <p
-              className={cn(
-                "text-muted-foreground mt-0.5 flex items-start gap-1.5 text-sm",
-                !expanded && "line-clamp-2",
-              )}
-            >
+            <p className="text-muted-foreground mt-0.5 flex items-start gap-1.5 text-sm">
               <BuildingIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-              <span>{lead.naf_label}</span>
+              {/* line-clamp on the text only: on the <p> it would override `flex`. */}
+              <span className={cn("min-w-0", !expanded && "line-clamp-2")}>{lead.naf_label}</span>
             </p>
           )}
         </div>

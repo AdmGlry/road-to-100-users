@@ -621,7 +621,8 @@ _(mis à jour par l'agent à la fin de chaque sprint)_
 
 - [x] Sprint 0 — Fondations (2026-10-25) : Next.js 16 + Tailwind + shadcn/ui + Vitest, connexion Google via Supabase, `proxy.ts` (ex-middleware), migration initiale + RLS + bucket `cvs` (19 tests SQL), `lib/crypto.ts`, `lib/llm/client.ts`, `lib/env.ts`, CI GitHub Actions.
 - [x] Sprint 1 — Profil (2026-10-25) : upload direct navigateur → Storage, extraction PDF (unpdf), prompt `extract_profile@1` + garde-fou déterministe qui retire toute valeur absente du CV, formulaire éditable à sauvegarde automatique, préférences, remplacement du CV avec revue champ par champ, 3 CV fictifs + tests. Critère « < 20 s » et test réel du LLM à valider en ligne (`tests/live/`).
-- [ ] Sprint 2
+- [x] Sprint 1.5 — Coach métiers (2026-10-25) : prompt `suggest_roles@1`, suggestions guidées (raisons tirées du profil, point d'attention, questions de challenge), ajout en un clic aux cibles du Chasseur.
+- [x] Sprint 2 — Chasseur : recherche et scoring (2026-10-25) : API Recherche d'entreprises (near_point + search, limiteur 5 req/s), géocodage, `map_naf@1`, pré-filtre déterministe (60), `score_fit@2` par lots de 10, 30 meilleures en leads, écran avec progression, filtres, sélection ; plafond de 10 recherches / 24 h par étudiant. Test réel « Business Analyst, alternance, Nantes, 30 km » : 150 entreprises trouvées, 60 pré-sélectionnées, notation IA OK. ⚠️ Avec les modèles gratuits OpenRouter, une recherche prend 1 à 3 min (critère « < 60 s » atteignable seulement avec un modèle payant rapide).
 - [ ] Sprint 3
 - [ ] Sprint 4
 - [ ] Sprint 5

@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   getSearchStatus,
+  STALE_RUNNING_MS,
+  STALE_SEARCH_ERROR,
   HunterError,
   listLeads,
   runSearch,
@@ -297,6 +299,29 @@ describe("runSearch", () => {
     const status = await getSearchStatus(user.client, id);
     expect(status).toMatchObject({ id, status: "done", results_count: 3, error: null });
     expect(await getSearchStatus(user.client, "5e5e5e5e-0000-4000-8000-000000000000")).toBeNull();
+  });
+
+  it("reports a search stuck in running for too long as failed", async () => {
+    const old = new Date(Date.now() - STALE_RUNNING_MS - 1000).toISOString();
+    const fake = createFakeSupabase({
+      searches: [
+        {
+          id: "stale-1",
+          user_id: USER,
+          status: "running",
+          progress: { step: "scoring", done: 1, total: 6 },
+          params: {},
+          results_count: 0,
+          error: null,
+          created_at: old,
+          updated_at: old,
+        },
+      ],
+    });
+    const status = await getSearchStatus(fake.client, "stale-1");
+    expect(status).toMatchObject({ status: "failed", error: STALE_SEARCH_ERROR });
+    const fresh = await getSearchStatus(fake.client, "stale-1");
+    expect(fresh?.status).toBe("failed");
   });
 
   it("is idempotent: re-running does not duplicate leads and keeps their status", async () => {

@@ -264,6 +264,17 @@ describe("score_fit", () => {
     expect(progress.every(([, t]) => t === 3)).toBe(true);
   });
 
+  it("stops calling the LLM after the deadline and uses the prefilter score", async () => {
+    const { provider: p, calls } = provider(() => "{}");
+    const { scored, failedBatches } = await scoreCompanies(PROFILE, candidates(12), {
+      provider: p,
+      deadlineAt: Date.now() - 1,
+    });
+    expect(calls).toHaveLength(0);
+    expect(failedBatches).toBe(2);
+    expect(scored.every((c) => c.fit_source === "fallback")).toBe(true);
+  });
+
   it("falls back to the prefilter score when a batch fails after 2 attempts", async () => {
     const { provider: p, calls } = provider((prompt) =>
       sirensIn(prompt)[0] === "200000000"

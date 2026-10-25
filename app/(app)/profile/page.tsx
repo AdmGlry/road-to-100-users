@@ -13,9 +13,10 @@ export const metadata: Metadata = { title: "Profil · Spontané" };
 /**
  * Applies to the Server Actions invoked from this page too (Next.js docs:
  * route segment config `maxDuration`): the CV analysis (PDF text + LLM)
- * targets < 20 s, 60 s leaves headroom on Vercel.
+ * targets < 20 s, but the "Métiers suggérés" coach (suggest_roles, up to 2
+ * attempts × 20–60 s on free OpenRouter models) needs more headroom.
  */
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export default function ProfilePage() {
   return (

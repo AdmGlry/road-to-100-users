@@ -245,7 +245,7 @@ export function SearchForm({
           {busy ? "Lancement…" : submitLabel}
         </Button>
         <p className="text-muted-foreground text-xs">
-          Compte 20 à 60 secondes. Tu peux quitter la page, la recherche continue.
+          Compte 1 à 3 minutes. Tu peux quitter la page, la recherche continue.
         </p>
       </div>
     </form>

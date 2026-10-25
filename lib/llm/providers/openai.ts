@@ -23,6 +23,8 @@ type OpenAiCompatibleOptions = {
    * model when one is rate-limited or unavailable.
    */
   modelFallbacks?: boolean;
+  /** Abort a request that takes longer than this (free models can hang). Default 45 s. */
+  timeoutMs?: number;
 };
 
 /** Splits "a, b ,c" into ["a","b","c"] (empty entries dropped). */
@@ -42,6 +44,7 @@ export class OpenAiProvider implements LlmProvider {
   private readonly extraHeaders: Record<string, string>;
   private readonly maxTokensParam: "max_completion_tokens" | "max_tokens";
   private readonly modelFallbacks: boolean;
+  private readonly timeoutMs: number;
 
   constructor(opts: OpenAiCompatibleOptions) {
     this.apiKey = opts.apiKey;
@@ -51,6 +54,7 @@ export class OpenAiProvider implements LlmProvider {
     this.extraHeaders = opts.extraHeaders ?? {};
     this.maxTokensParam = opts.maxTokensParam ?? "max_completion_tokens";
     this.modelFallbacks = opts.modelFallbacks ?? false;
+    this.timeoutMs = opts.timeoutMs ?? 45_000;
   }
 
   async complete(req: LlmCompletionRequest): Promise<LlmCompletionResult> {
@@ -60,6 +64,7 @@ export class OpenAiProvider implements LlmProvider {
     ];
     const res = await this.fetchImpl(this.endpoint, {
       method: "POST",
+      signal: AbortSignal.timeout(this.timeoutMs),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,

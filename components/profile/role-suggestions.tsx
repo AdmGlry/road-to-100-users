@@ -194,6 +194,7 @@ export function RoleSuggestions({
           <Button
             type="button"
             variant={view ? "outline" : "default"}
+            className="h-10"
             onClick={() => void request(view ? answersRecord(previousAnswers) : {})}
             disabled={busy}
           >
@@ -273,6 +274,7 @@ export function RoleSuggestions({
                 type="button"
                 onClick={() => void request(mergeAnswers(previousAnswers, selected))}
                 disabled={busy || selectedCount === 0}
+                className="h-10"
               >
                 <SparklesIcon aria-hidden="true" />
                 Affiner les suggestions
@@ -397,7 +399,7 @@ function RoleCard({
       <div className="flex flex-col gap-1">
         <div>
           {inTargets ? (
-            <Button type="button" size="sm" variant="secondary" disabled>
+            <Button type="button" size="sm" variant="secondary" className="h-10" disabled>
               <CheckIcon aria-hidden="true" />
               Dans mes cibles
             </Button>
@@ -406,6 +408,7 @@ function RoleCard({
               type="button"
               size="sm"
               variant="outline"
+              className="h-10"
               onClick={onAdd}
               disabled={disabled || pending}
               aria-describedby={titleId}
@@ -461,7 +464,7 @@ function QuestionBubble({
               type="button"
               size="sm"
               variant={active ? "default" : "outline"}
-              className="rounded-full"
+              className="h-10 rounded-full"
               aria-pressed={active}
               disabled={disabled}
               onClick={() => onChange(option)}

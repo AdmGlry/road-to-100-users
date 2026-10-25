@@ -256,6 +256,13 @@ async function locate(
   return { origin: null, departement: departementFromPostcode(extractPostcode(city)) };
 }
 
+/** Scoring stops calling the LLM this long after the search started (limit 300 s). */
+export const SCORING_DEADLINE_MS = 200_000;
+/** A search still "running" after this long was killed (timeout/crash): report it failed. */
+export const STALE_RUNNING_MS = 6 * 60_000;
+export const STALE_SEARCH_ERROR =
+  "La recherche a pris trop de temps et a été interrompue. Relance-la (l'IA gratuite est parfois saturée).";
+
 /**
  * Runs a search created by startSearch. `supabase` is the signed-in user's client
  * (RLS), `admin` the service-role client used ONLY to write the shared `companies`
@@ -394,6 +401,9 @@ export async function runSearch(
       {
         provider: deps.llmProvider,
         onUsage,
+        // Stay well under the function's 300 s limit: late batches keep the
+        // pre-filter score instead of risking a killed job stuck in "running".
+        deadlineAt: Date.now() + SCORING_DEADLINE_MS - (now() - started),
         onBatchDone: (done, total) => setProgress({ step: "scoring", done, total }),
       },
     );
@@ -500,13 +510,32 @@ export async function getSearchStatus(
   if (!data) return null;
   const row = data as Record<string, unknown>;
   const p = progressSchema.safeParse(row.progress);
+  let status = (
+    ["running", "done", "failed"].includes(row.status as string) ? row.status : "running"
+  ) as SearchStatusValue;
+  let errorText = typeof row.error === "string" ? row.error : null;
+  const lastUpdate = Date.parse(String(row.updated_at ?? row.created_at ?? ""));
+  if (
+    status === "running" &&
+    Number.isFinite(lastUpdate) &&
+    Date.now() - lastUpdate > STALE_RUNNING_MS
+  ) {
+    // The background job was killed before it could finish: close the search.
+    status = "failed";
+    errorText = STALE_SEARCH_ERROR;
+    const { error: updateError } = await supabase
+      .from("searches")
+      .update({ status: "failed", error: STALE_SEARCH_ERROR })
+      .eq("id", searchId)
+      .eq("status", "running");
+    if (updateError)
+      console.warn(`[hunter] stale search update failed (${updateError.code ?? "unknown"})`);
+  }
   return {
     id: String(row.id),
-    status: (["running", "done", "failed"].includes(row.status as string)
-      ? row.status
-      : "running") as SearchStatusValue,
+    status,
     progress: p.success ? p.data : { step: "naf", done: 0, total: 0 },
-    error: typeof row.error === "string" ? row.error : null,
+    error: errorText,
     results_count: typeof row.results_count === "number" ? row.results_count : 0,
     params:
       row.params && typeof row.params === "object" ? (row.params as Record<string, unknown>) : {},

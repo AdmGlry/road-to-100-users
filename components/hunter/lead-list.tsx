@@ -208,7 +208,7 @@ export function LeadList({
           onEditSearch={onEditSearch}
         />
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-label="Liste des entreprises">
+        <ul className="grid gap-3 md:grid-cols-2" aria-label="Liste des entreprises">
           {shown.map((lead) => (
             <li key={lead.id}>
               <LeadCard
@@ -245,7 +245,7 @@ function FiltersBar({
     <div
       role="group"
       aria-label="Filtres"
-      className="grid grid-cols-3 items-end gap-2 sm:flex sm:flex-wrap sm:gap-3"
+      className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap sm:gap-3"
     >
       <div className="flex min-w-0 flex-col gap-1.5 sm:w-40">
         <Label htmlFor={`${uid}-score`} className="text-xs">
@@ -396,7 +396,7 @@ function PrepareBar({ count, variant }: { count: number; variant: "mobile" | "de
 
 export function LeadListSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+    <div className="grid gap-3 md:grid-cols-2" aria-busy="true">
       <p className="sr-only" role="status">
         Chargement des entreprises…
       </p>

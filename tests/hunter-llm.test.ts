@@ -174,7 +174,7 @@ describe("score_fit", () => {
         city: "NANTES",
       },
     ]);
-    expect(SCORE_FIT_VERSION).toBe("score_fit@1");
+    expect(SCORE_FIT_VERSION).toBe("score_fit@2");
     expect(system).toMatch(/Ne suppose aucune information/);
     expect(system).toMatch(/max 8 mots/);
     expect(prompt).toContain("siren: 200000000");

@@ -17,7 +17,21 @@ type OpenAiCompatibleOptions = {
   extraHeaders?: Record<string, string>;
   /** OpenAI uses `max_completion_tokens`; most compatible APIs only know `max_tokens`. */
   maxTokensParam?: "max_completion_tokens" | "max_tokens";
+  /**
+   * OpenRouter only: a comma-separated model setting ("a,b,c") is sent as
+   * `model: "a", models: ["a","b","c"]` so OpenRouter falls back to the next
+   * model when one is rate-limited or unavailable.
+   */
+  modelFallbacks?: boolean;
 };
+
+/** Splits "a, b ,c" into ["a","b","c"] (empty entries dropped). */
+export function splitModelList(model: string): string[] {
+  return model
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+}
 
 /** OpenAI-compatible Chat Completions via plain fetch (no SDK), JSON mode enabled. */
 export class OpenAiProvider implements LlmProvider {
@@ -27,6 +41,7 @@ export class OpenAiProvider implements LlmProvider {
   private readonly label: string;
   private readonly extraHeaders: Record<string, string>;
   private readonly maxTokensParam: "max_completion_tokens" | "max_tokens";
+  private readonly modelFallbacks: boolean;
 
   constructor(opts: OpenAiCompatibleOptions) {
     this.apiKey = opts.apiKey;
@@ -35,6 +50,7 @@ export class OpenAiProvider implements LlmProvider {
     this.label = opts.label ?? "OpenAI";
     this.extraHeaders = opts.extraHeaders ?? {};
     this.maxTokensParam = opts.maxTokensParam ?? "max_completion_tokens";
+    this.modelFallbacks = opts.modelFallbacks ?? false;
   }
 
   async complete(req: LlmCompletionRequest): Promise<LlmCompletionResult> {
@@ -50,7 +66,7 @@ export class OpenAiProvider implements LlmProvider {
         ...this.extraHeaders,
       },
       body: JSON.stringify({
-        model: req.model,
+        ...this.modelFields(req.model),
         messages,
         [this.maxTokensParam]: req.maxTokens,
         response_format: { type: "json_object" },
@@ -70,6 +86,12 @@ export class OpenAiProvider implements LlmProvider {
       outputTokens: body.usage?.completion_tokens ?? 0,
     };
   }
+
+  private modelFields(model: string): { model: string; models?: string[] } {
+    const list = splitModelList(model);
+    if (!this.modelFallbacks || list.length <= 1) return { model: list[0] ?? model };
+    return { model: list[0], models: list };
+  }
 }
 
 /** OpenRouter (OpenAI-compatible gateway to many models, incl. free ones). */
@@ -84,6 +106,7 @@ export function createOpenRouterProvider(opts: {
     endpoint: OPENROUTER_ENDPOINT,
     label: "OpenRouter",
     maxTokensParam: "max_tokens",
+    modelFallbacks: true,
     // Optional attribution headers documented by OpenRouter.
     extraHeaders: {
       ...(opts.appUrl ? { "HTTP-Referer": opts.appUrl } : {}),

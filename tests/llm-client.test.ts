@@ -254,6 +254,38 @@ describe("providers", () => {
     expect(body.max_completion_tokens).toBeUndefined();
   });
 
+  it("OpenRouter provider sends a comma-separated model setting as fallbacks", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+          status: 200,
+        }),
+    );
+    const p = createOpenRouterProvider({ apiKey: "k", fetch: fetchMock as typeof fetch });
+    await p.complete({
+      messages: [{ role: "user", content: "hi" }],
+      model: "a/one:free, b/two:free ,",
+      maxTokens: 10,
+    });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.model).toBe("a/one:free");
+    expect(body.models).toEqual(["a/one:free", "b/two:free"]);
+  });
+
+  it("OpenAI provider never sends a models list", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+          status: 200,
+        }),
+    );
+    const p = new OpenAiProvider({ apiKey: "k", fetch: fetchMock as typeof fetch });
+    await p.complete({ messages: [{ role: "user", content: "hi" }], model: "gpt-x", maxTokens: 1 });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string).models).toBeUndefined();
+  });
+
   it("OpenRouter provider labels HTTP errors", async () => {
     const fetchMock = vi.fn(
       async () =>

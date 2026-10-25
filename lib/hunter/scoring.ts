@@ -20,7 +20,8 @@ import { mapWithConcurrency } from "./concurrency";
 import type { PrefilteredCompany } from "./prefilter";
 
 export const FALLBACK_REASON = "Score estimé (IA indisponible)";
-export const SCORING_CONCURRENCY = 3;
+// Free OpenRouter models rate-limit quickly: 2 concurrent batches.
+export const SCORING_CONCURRENCY = 2;
 const MAX_REASON_WORDS = 8;
 const MAX_REASONS = 3;
 

@@ -14,7 +14,7 @@ import type { ModelTier } from "../client";
 export const PROMPT_NAME = "map_naf";
 export const PROMPT_VERSION = "map_naf@1";
 export const MODEL_TIER: ModelTier = "fast";
-export const MAX_TOKENS = 1200;
+export const MAX_TOKENS = 2048;
 
 export const MIN_CODES = 3;
 export const MAX_CODES = 12;

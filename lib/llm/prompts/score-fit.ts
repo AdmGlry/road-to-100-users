@@ -9,9 +9,10 @@ import { z } from "zod";
 import type { ModelTier } from "../client";
 
 export const PROMPT_NAME = "score_fit";
-export const PROMPT_VERSION = "score_fit@1";
+export const PROMPT_VERSION = "score_fit@2";
 export const MODEL_TIER: ModelTier = "fast";
-export const MAX_TOKENS = 1800;
+// Some free models emit ~130 output tokens per company: keep headroom for 10.
+export const MAX_TOKENS = 4096;
 export const BATCH_SIZE = 10;
 
 /** Lenient: repaired after parsing. */
@@ -48,7 +49,7 @@ export type ScoreFitCompany = {
 };
 
 const SYSTEM = `Tu évalues si des entreprises sont de bonnes cibles de candidature spontanée pour cet étudiant.
-Pour chaque entreprise, donne un score de 0 à 100 et 2 à 3 raisons très courtes (max 8 mots chacune), en français.
+Pour chaque entreprise, donne un score de 0 à 100 et 2 à 3 raisons très courtes (max 8 mots chacune), rédigées en français (jamais en anglais).
 Critères : probabilité que l'entreprise ait besoin de ce profil, taille suffisante pour accueillir un alternant/stagiaire, cohérence avec le secteur visé.
 Ne suppose aucune information que tu n'as pas. N'attribue à l'étudiant aucune expérience, compétence ou diplôme absent de son profil, et n'invente rien sur les entreprises.
 Évalue chaque entreprise de la liste, une seule fois, avec exactement son "siren".

@@ -51,8 +51,9 @@ export function SendBar({
 
   return (
     <>
-      {/* Sticky (not fixed): it never covers the last card. */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky bottom-0 z-10 -mx-4 mt-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6">
+      {/* Sticky (not fixed): it never covers the last card. On touch screens it
+          steps aside while the student types (keyboard open), so the field stays visible. */}
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky bottom-0 z-10 -mx-4 mt-2 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:-mx-6 sm:px-6 pointer-coarse:group-has-[textarea:focus,input:not([type=radio]):focus]/review:hidden">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="flex min-w-0 flex-col gap-0.5">
             <p className="text-sm">
@@ -199,7 +200,7 @@ function ConfirmSendDialog({
             </li>
             <li className="tabular-nums">
               Il te restera {remainingAfter} envoi{remainingAfter > 1 ? "s" : ""} sur {limit} pour
-              les prochaines 24 h.
+              les prochaines 24&nbsp;h.
             </li>
             {extra > 0 && (
               <li>

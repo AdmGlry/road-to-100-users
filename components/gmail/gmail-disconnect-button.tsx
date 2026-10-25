@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { disconnectGmailAction } from "@/app/(app)/settings/actions";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,19 @@ export function GmailDisconnectButton() {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // The trigger is replaced by the confirmation: keep keyboard focus with it.
+  const open = () => {
+    setConfirming(true);
+    requestAnimationFrame(() => cancelRef.current?.focus());
+  };
+  const cancel = () => {
+    setConfirming(false);
+    setError(null);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  };
 
   const disconnect = () => {
     setError(null);
@@ -31,10 +44,11 @@ export function GmailDisconnectButton() {
     return (
       <div className="flex flex-col gap-2">
         <Button
+          ref={triggerRef}
           type="button"
           variant="outline"
           className="w-full sm:w-fit"
-          onClick={() => setConfirming(true)}
+          onClick={open}
         >
           Déconnecter Gmail
         </Button>
@@ -65,12 +79,7 @@ export function GmailDisconnectButton() {
         <Button type="button" variant="destructive" onClick={disconnect} disabled={pending}>
           {pending ? "Déconnexion…" : "Oui, déconnecter"}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setConfirming(false)}
-          disabled={pending}
-        >
+        <Button ref={cancelRef} type="button" variant="outline" onClick={cancel} disabled={pending}>
           Annuler
         </Button>
       </div>

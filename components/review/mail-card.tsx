@@ -100,6 +100,9 @@ export function MailCard({
   const [notice, setNotice] = useState<string | null>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
   const editButtonRef = useRef<HTMLButtonElement>(null);
+  const regenerateButtonRef = useRef<HTMLButtonElement>(null);
+  const dismissButtonRef = useRef<HTMLButtonElement>(null);
+  const confirmCancelRef = useRef<HTMLButtonElement>(null);
 
   const words = countWords(editing ? body : item.body);
   const lengthState = bodyLengthState(words);
@@ -147,6 +150,19 @@ export function MailCard({
     setEditing(false);
     setError(null);
     requestAnimationFrame(() => editButtonRef.current?.focus());
+  };
+
+  // The action row is replaced by the confirmation: move focus into it, and
+  // back to the button that opened it on "Annuler" (keyboard users keep their place).
+  const openConfirm = (kind: Exclude<Confirm, null>) => {
+    setConfirm(kind);
+    requestAnimationFrame(() => confirmCancelRef.current?.focus());
+  };
+
+  const cancelConfirm = () => {
+    const trigger = confirm === "dismiss" ? dismissButtonRef : regenerateButtonRef;
+    setConfirm(null);
+    requestAnimationFrame(() => trigger.current?.focus());
   };
 
   const save = async () => {
@@ -387,8 +403,9 @@ export function MailCard({
               maxLength={5000}
               aria-describedby={`${uid}-body-hint`}
               disabled={busy}
-              // 16 px on phones (no iOS zoom), grows with the text.
-              className="min-h-72 text-base leading-relaxed md:text-sm"
+              // 16 px on phones (no iOS zoom), grows with the text; same 75ch
+              // measure as the preview (DESIGN.md: prose under 75 characters).
+              className="min-h-72 max-w-[75ch] text-base leading-relaxed md:text-sm"
             />
             <p
               id={`${uid}-body-hint`}
@@ -427,7 +444,7 @@ export function MailCard({
             <>
               <div
                 id={`${uid}-body`}
-                className="bg-background/60 motion-enter mt-1 rounded-md border p-3 text-sm leading-relaxed wrap-anywhere whitespace-pre-line sm:p-4"
+                className="bg-background/60 motion-enter mt-1 max-w-[75ch] rounded-md border p-3 text-sm leading-relaxed wrap-anywhere whitespace-pre-line sm:p-4"
               >
                 {item.body}
               </div>
@@ -510,7 +527,7 @@ export function MailCard({
               : "Régénérer ce mail ? Tes modifications seront remplacées par un nouveau texte."}
           </p>
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
-            <Button variant="ghost" onClick={() => setConfirm(null)} disabled={busy}>
+            <Button ref={confirmCancelRef} variant="ghost" onClick={cancelConfirm} disabled={busy}>
               Annuler
             </Button>
             {confirm === "dismiss" ? (
@@ -606,22 +623,24 @@ export function MailCard({
               Modifier
             </Button>
             <Button
+              ref={regenerateButtonRef}
               variant="ghost"
               size="sm"
               className="h-10"
               disabled={busy}
-              onClick={() => (item.edited_by_user ? setConfirm("regenerate") : void regenerate())}
+              onClick={() => (item.edited_by_user ? openConfirm("regenerate") : void regenerate())}
               aria-label={`Régénérer le mail pour ${item.company.name}`}
             >
               <RotateCwIcon aria-hidden="true" />
               Régénérer
             </Button>
             <Button
+              ref={dismissButtonRef}
               variant="ghost"
               size="sm"
               className="h-10"
               disabled={busy}
-              onClick={() => setConfirm("dismiss")}
+              onClick={() => openConfirm("dismiss")}
               aria-label={`Ignorer ${item.company.name}`}
             >
               <EyeOffIcon aria-hidden="true" />

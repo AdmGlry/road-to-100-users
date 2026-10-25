@@ -160,7 +160,8 @@ export function ReviewWorkspace({ initialState }: { initialState: ReviewState })
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    // group/review: the send bar hides itself while a text field is focused on touch screens.
+    <div className="group/review flex flex-col gap-6">
       <p className="text-muted-foreground text-sm tabular-nums" aria-live="polite">
         {countsSummary(counts)}
         {preparingCount > 0 && `, ${preparingCount} en préparation`}. {quotaLabel(state.quota)}.

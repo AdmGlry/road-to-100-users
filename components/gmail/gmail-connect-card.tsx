@@ -1,4 +1,4 @@
-import { CheckIcon, MailIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, MailIcon, XIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,10 +92,10 @@ function Consent() {
 
 function TestModeNote() {
   return (
-    <div className="text-muted-foreground flex flex-col gap-1 text-sm">
+    <div className="text-muted-foreground flex max-w-[65ch] flex-col gap-1 text-sm">
       <p>
-        Spontané est en phase de test : Google te demandera de reconnecter ton Gmail tous les 7
-        jours. Un bandeau te le rappellera.
+        Spontané est en phase de test : Google te demandera de reconnecter ton Gmail tous les
+        7&nbsp;jours. Un bandeau te le rappellera.
       </p>
       <p>
         Google affichera aussi un avertissement « application non validée » : c&apos;est normal
@@ -147,7 +147,9 @@ export function GmailConnectCard({ status, next }: { status: GmailStatus; next?:
               <Badge variant="success">Connecté</Badge>
             </div>
             {status.email && (
-              <p className="text-muted-foreground text-sm break-all">{status.email}</p>
+              <p className="text-muted-foreground text-sm wrap-anywhere" translate="no">
+                {status.email}
+              </p>
             )}
           </div>
           <Button asChild variant="outline" className="w-full sm:w-auto">
@@ -155,8 +157,12 @@ export function GmailConnectCard({ status, next }: { status: GmailStatus; next?:
           </Button>
         </div>
         <details className="group">
-          <summary className="text-primary inline-flex min-h-10 cursor-pointer items-center text-sm font-semibold underline-offset-4 hover:underline">
+          <summary className="text-primary inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-sm font-semibold underline-offset-4 hover:underline [&::-webkit-details-marker]:hidden">
             Ce que Spontané peut faire avec ton Gmail
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="size-4 shrink-0 transition-[rotate] duration-(--duration-base) ease-(--ease-out) group-open:rotate-180"
+            />
           </summary>
           <div className="flex flex-col gap-4 pt-2">
             <Consent />
@@ -171,7 +177,7 @@ export function GmailConnectCard({ status, next }: { status: GmailStatus; next?:
     status.state === "expired"
       ? {
           title: "Ta connexion Gmail a expiré",
-          text: "Pendant la phase de test, Google coupe l'accès au bout de 7 jours. Reconnecte ton Gmail pour reprendre les envois et le suivi des réponses.",
+          text: "Pendant la phase de test, Google coupe l'accès au bout de 7\u00a0jours. Reconnecte ton Gmail pour reprendre les envois et le suivi des réponses.",
           cta: "Reconnecter mon Gmail",
         }
       : status.state === "revoked"
@@ -219,7 +225,9 @@ export function GmailConnectCard({ status, next }: { status: GmailStatus; next?:
                 : "Tes mails partent de ta propre adresse : les recruteurs te répondent directement, et Spontané repère leurs réponses pour toi."}
             </p>
             {problem && status.email && (
-              <p className="text-muted-foreground text-sm break-all">{status.email}</p>
+              <p className="text-muted-foreground text-sm wrap-anywhere" translate="no">
+                {status.email}
+              </p>
             )}
           </div>
         </div>

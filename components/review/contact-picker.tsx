@@ -116,7 +116,9 @@ export function ContactPicker({
           {others.length > 0 ? "Ou saisis une adresse" : "Saisis l'adresse du destinataire"}
         </p>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`${uid}-email`}>Adresse e-mail chez {companyName}</Label>
+          <Label htmlFor={`${uid}-email`} className="leading-snug wrap-anywhere">
+            Adresse e-mail chez {companyName}
+          </Label>
           <Input
             id={`${uid}-email`}
             type="email"

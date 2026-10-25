@@ -11,7 +11,7 @@ import type { GmailStatus } from "@/lib/hunter/application-types";
 export function GmailStatusBanner({ status, next }: { status: GmailStatus; next?: string }) {
   const reason =
     status.state === "expired"
-      ? "Ta connexion a expiré (Google la coupe tous les 7 jours pendant la phase de test)."
+      ? "Ta connexion a expiré (Google la coupe tous les 7\u00a0jours pendant la phase de test)."
       : status.state === "revoked"
         ? "L'accès de Spontané à ton Gmail a été retiré."
         : status.state === "active" && status.missingScopes

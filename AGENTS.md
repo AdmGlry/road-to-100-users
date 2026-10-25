@@ -27,6 +27,7 @@ La spécification complète est dans `SPEC.md`. **Lis-la avant toute tâche.** N
 - Tous les prompts LLM dans `lib/llm/prompts/`, un fichier par prompt, versionnés (constante `PROMPT_VERSION`).
 - Migrations SQL dans `supabase/migrations/`. Jamais de modification manuelle du schéma sans migration.
 - Pas de secret dans le code. Toute nouvelle variable d'environnement est ajoutée à `.env.example` avec un commentaire.
+- Respecter DESIGN.md pour toute interface.
 
 ## Règles de sécurité et RGPD (non négociables)
 

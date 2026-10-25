@@ -9,8 +9,8 @@ function Checkbox({ className, ...props }: Omit<React.ComponentProps<"input">, "
       type="checkbox"
       data-slot="checkbox"
       className={cn(
-        "accent-primary border-input size-4 shrink-0 rounded-[4px] border shadow-xs outline-none disabled:cursor-not-allowed disabled:opacity-50",
-        "focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "accent-primary border-input size-[1.125rem] shrink-0 cursor-pointer rounded-sm border outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid",
         className,
       )}
       {...props}

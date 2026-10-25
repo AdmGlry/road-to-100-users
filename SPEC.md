@@ -613,7 +613,7 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 - La vue `google_connection_status` est remplacée par une fonction `google_connection_status()` (appel `supabase.rpc`), mêmes garanties, sans alerte du linter Supabase. L'enum du statut Gmail s'appelle `google_connection_state`.
 - `send_log` est conservé si une candidature est supprimée (sinon on pourrait contourner le quota).
 - Le fichier CV dans Storage doit être supprimé explicitement lors de la suppression de compte (pas de cascade SQL vers Storage).
-- Fournisseur LLM par défaut : Anthropic. Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.
+- Fournisseur LLM : OpenRouter (`LLM_PROVIDER=openrouter`) avec le routeur gratuit `openrouter/free` pendant le développement, au choix du propriétaire. ⚠️ Les modèles gratuits peuvent conserver/utiliser les prompts : à réserver aux tests (CV fictifs ou du propriétaire) ; passer à un modèle payant sans rétention avant la bêta avec de vrais étudiants (RGPD). Notification d'entretien : via le Gmail de l'étudiant (pas de Resend) sauf avis contraire.
 
 ## 16. Avancement
 

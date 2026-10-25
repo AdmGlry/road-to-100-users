@@ -1,7 +1,7 @@
 /**
  * Single LLM entry point. SERVER ONLY.
  *
- * - Provider chosen by LLM_PROVIDER (anthropic | openai), model by tier
+ * - Provider chosen by LLM_PROVIDER (anthropic | openai | openrouter), model by tier
  *   (LLM_MODEL_FAST / LLM_MODEL_SMART).
  * - Output is JSON validated with a Zod schema; one corrective retry
  *   (2 attempts max, SPEC §13 Sprint 0).
@@ -10,7 +10,7 @@
 import { z } from "zod";
 import { getLlmEnv } from "@/lib/env";
 import { AnthropicProvider } from "./providers/anthropic";
-import { OpenAiProvider } from "./providers/openai";
+import { createOpenRouterProvider, OpenAiProvider } from "./providers/openai";
 import type { LlmMessage, LlmProvider } from "./providers/types";
 
 export type { LlmProvider, LlmMessage } from "./providers/types";
@@ -96,10 +96,19 @@ function getProvider(): LlmProvider {
   if (providerOverride) return providerOverride;
   if (!cachedProvider) {
     const env = getLlmEnv();
-    cachedProvider =
-      env.LLM_PROVIDER === "openai"
-        ? new OpenAiProvider({ apiKey: env.LLM_API_KEY })
-        : new AnthropicProvider({ apiKey: env.LLM_API_KEY });
+    switch (env.LLM_PROVIDER) {
+      case "openai":
+        cachedProvider = new OpenAiProvider({ apiKey: env.LLM_API_KEY });
+        break;
+      case "openrouter":
+        cachedProvider = createOpenRouterProvider({
+          apiKey: env.LLM_API_KEY,
+          appUrl: process.env.APP_URL,
+        });
+        break;
+      default:
+        cachedProvider = new AnthropicProvider({ apiKey: env.LLM_API_KEY });
+    }
   }
   return cachedProvider;
 }

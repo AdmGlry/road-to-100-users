@@ -48,7 +48,9 @@ const llmProvider = () =>
   z.preprocess(
     (v) => (typeof v === "string" ? v.trim().toLowerCase() || undefined : v),
     z
-      .enum(["anthropic", "openai"], { error: 'must be "anthropic" or "openai"' })
+      .enum(["anthropic", "openai", "openrouter"], {
+        error: 'must be "anthropic", "openai" or "openrouter"',
+      })
       .default("anthropic"),
   );
 

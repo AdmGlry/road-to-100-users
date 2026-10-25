@@ -91,6 +91,11 @@ describe("env", () => {
     expect(getAdminEmails()).toEqual([]);
   });
 
+  it("getLlmEnv() accepts openrouter", () => {
+    stubAll({ LLM_PROVIDER: "openrouter" });
+    expect(getLlmEnv().LLM_PROVIDER).toBe("openrouter");
+  });
+
   it("getLlmEnv() accepts openai and normalizes case", () => {
     stubAll({ LLM_PROVIDER: "OpenAI" });
     expect(getLlmEnv().LLM_PROVIDER).toBe("openai");

@@ -142,6 +142,26 @@ describe("processSendQueue — send conditions", () => {
   });
 });
 
+describe("processSendQueue — content read under the claim", () => {
+  it("sends the current subject/body, not the snapshot read before earlier sends", async () => {
+    const { run, sendRawMessage, appRow } = setup([
+      app({ id: "first", user_id: OTHER, lead_id: "lead-2", contact_id: "contact-2" }),
+      app({ id: "second", scheduled_for: at(-500) }),
+    ]);
+    // While the first mail is being sent, the student edits the second one
+    // (back to draft), validates and queues it again.
+    sendRawMessage.mockImplementationOnce(async () => {
+      Object.assign(appRow("second"), { subject: "Objet corrige", body: "Texte corrige." });
+      return { id: "msg-1", threadId: "thread-1" };
+    });
+    expect(await run()).toEqual({ sent: 2, failed: 0, deferred: 0 });
+    const raw = (sendRawMessage.mock.calls[1] as unknown as [string, string])[1];
+    const mime = Buffer.from(raw, "base64url").toString("utf8");
+    expect(mime).toContain("Subject: Objet corrige");
+    expect(mime).not.toContain("Alternance Business Analyst");
+  });
+});
+
 describe("processSendQueue — claims", () => {
   it("leaves a mail claimed by a live worker alone", async () => {
     const { run, sendRawMessage } = setup([app({ send_claimed_at: at(-60_000) })]);

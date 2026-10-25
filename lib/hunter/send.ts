@@ -306,12 +306,25 @@ export async function processSendQueue(
       claim = row.send_claimed_at
         ? claim.eq("send_claimed_at", row.send_claimed_at)
         : claim.is("send_claimed_at", null);
-      const { data: claimed, error: claimError } = await claim.select("id");
+      // Returns the row as it is NOW (under the claim): the snapshot read at
+      // the top of the run may be stale (edited, re-validated and re-queued
+      // while earlier rows were being sent).
+      const { data: claimed, error: claimError } = await claim.select(
+        "id, user_id, lead_id, contact_id, subject, body, scheduled_for, send_claimed_at",
+      );
       if (claimError) throw dbError("claim", claimError);
       if (!Array.isArray(claimed) || claimed.length !== 1) {
         counts.deferred++;
         continue;
       }
+      const fresh = claimed[0] as QueueRow;
+      const current: QueueRow = {
+        ...row,
+        lead_id: fresh.lead_id,
+        contact_id: fresh.contact_id,
+        subject: fresh.subject,
+        body: fresh.body,
+      };
 
       if (staleClaim) {
         // A previous worker died mid-send. If it had reserved a slot, the
@@ -330,7 +343,7 @@ export async function processSendQueue(
         }
       }
 
-      const outcome = await sendOne(admin, row, deps, tokens, nowDate, {
+      const outcome = await sendOne(admin, current, deps, tokens, nowDate, {
         toDraft,
         unscheduleUser,
         releaseClaim,

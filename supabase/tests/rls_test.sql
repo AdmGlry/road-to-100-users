@@ -422,6 +422,160 @@ begin
 end
 $$;
 
+-- -----------------------------------------------------------------------------
+-- Sprint 3: atomic send quota (reserve_send_slot) + one application per lead
+-- -----------------------------------------------------------------------------
+reset role;
+
+do $$
+declare
+  b constant uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  used int;
+  slot uuid;
+begin
+  select count(*) into used from public.send_log
+   where user_id = b and sent_at > now() - interval '24 hours';
+  slot := public.reserve_send_slot(b, null, used + 1);
+  if slot is null then
+    raise exception 'FAIL: reserve_send_slot refused a slot under the limit';
+  end if;
+  if public.reserve_send_slot(b, null, used + 1) is not null then
+    raise exception 'FAIL: reserve_send_slot exceeded the limit';
+  end if;
+  -- Releasing the slot (failed send) frees the quota again.
+  delete from public.send_log where id = slot;
+  if public.reserve_send_slot(b, null, used + 1) is null then
+    raise exception 'FAIL: released slot not available again';
+  end if;
+  raise notice 'PASS: reserve_send_slot enforces the rolling quota';
+end
+$$;
+
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  begin
+    perform public.reserve_send_slot('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', null, 1000);
+    raise exception 'FAIL: authenticated may call reserve_send_slot';
+  exception when insufficient_privilege then
+    raise notice 'PASS: reserve_send_slot is service-role only';
+  end;
+  begin
+    perform public.trigger_send_queue();
+    raise exception 'FAIL: authenticated may call trigger_send_queue';
+  exception when insufficient_privilege then
+    raise notice 'PASS: trigger_send_queue is not callable by clients';
+  end;
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
+do $$
+declare
+  lead_b uuid;
+begin
+  select id into lead_b from public.leads
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' limit 1;
+  if not exists (select 1 from public.applications where lead_id = lead_b) then
+    insert into public.applications (user_id, lead_id)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', lead_b);
+  end if;
+  begin
+    insert into public.applications (user_id, lead_id)
+    values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', lead_b);
+    raise exception 'FAIL: two applications for the same lead';
+  exception when unique_violation then
+    raise notice 'PASS: one application per lead';
+  end;
+  -- trigger_send_queue is a no-op without vault / pg_net (must not fail).
+  perform public.trigger_send_queue();
+  raise notice 'PASS: trigger_send_queue no-op without vault';
+end
+$$;
+
+-- Clients may only move their applications between draft and approved;
+-- worker-owned columns and sent mails are read-only (service role exempt).
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+declare
+  app_b uuid;
+begin
+  select a.id into app_b from public.applications a
+   where a.status = 'draft' limit 1;
+  update public.applications set subject = 'Objet', body = 'Bonjour', contact_id = null
+   where id = app_b;
+  update public.applications set status = 'approved', approved_at = now() where id = app_b;
+  begin
+    update public.applications set scheduled_for = now() where id = app_b;
+    raise exception 'FAIL: client queued a mail without recipient';
+  exception when insufficient_privilege then null;
+  end;
+  update public.applications set contact_id = 'c1000000-0000-4000-8000-00000000000b'
+   where id = app_b;
+  update public.applications set scheduled_for = now() where id = app_b;
+  if (select scheduled_for from public.applications where id = app_b) is null then
+    raise exception 'FAIL: client cannot queue a validated mail';
+  end if;
+  begin
+    update public.applications set send_claimed_at = now() where id = app_b;
+    raise exception 'FAIL: client set send_claimed_at';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.applications set status = 'sent', sent_at = now() where id = app_b;
+    raise exception 'FAIL: client marked a mail as sent';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.applications set gmail_thread_id = 'x' where id = app_b;
+    raise exception 'FAIL: client set gmail_thread_id';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.applications (user_id, lead_id, status, approved_at, scheduled_for)
+    select 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', l.id, 'approved', now(), now()
+      from public.leads l limit 1;
+    raise exception 'FAIL: client inserted a queued mail';
+  exception when insufficient_privilege then null;
+  end;
+  update public.applications set scheduled_for = null where id = app_b;
+  raise notice 'PASS: client writes on applications limited to draft/approved';
+end
+$$;
+reset request.jwt.claim.sub;
+set role service_role;
+do $$
+begin
+  update public.applications set send_claimed_at = now()
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  update public.applications set send_claimed_at = null
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  update public.applications set status = 'sent', sent_at = now(), scheduled_for = null
+   where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and status = 'approved';
+  raise notice 'PASS: service role not restricted by the client guard';
+end
+$$;
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  if not exists (select 1 from public.applications where status = 'sent') then
+    raise exception 'FAIL: no sent application to test';
+  end if;
+  begin
+    update public.applications set subject = 'pwned', status = 'draft' where status = 'sent';
+    raise exception 'FAIL: client edited a sent mail';
+  exception when insufficient_privilege then null;
+  end;
+  raise notice 'PASS: sent mails are read-only for clients';
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
 -- GDPR: deleting auth user A removes ALL of A's rows.
 delete from auth.users where id = :user_a;
 

@@ -22,7 +22,18 @@ export type FakeOptions = {
   failOn?: (table: string, op: Op) => DbError | null;
   /** Share the tables of another fake (e.g. a user client and a service-role client). */
   tables?: Record<string, Row[]>;
+  /** Handler for `client.rpc(name, args)` (default: error "rpc not mocked"). */
+  rpc?: (name: string, args: Record<string, unknown> | undefined) => unknown;
+  /** Object exposed as `client.storage` (e.g. `{ from: () => ({ download }) }`). */
+  storage?: unknown;
 };
+
+/** Ordered comparison for numbers and strings (ISO timestamps compare as strings). */
+function compare(a: unknown, b: unknown): number | null {
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  if (typeof a === "string" && typeof b === "string") return a < b ? -1 : a > b ? 1 : 0;
+  return null;
+}
 
 export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: FakeOptions = {}) {
   const tables: Record<string, Row[]> = opts.tables ?? {};
@@ -30,7 +41,7 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
   const calls: FakeCall[] = [];
   const table = (name: string) => (tables[name] ??= []);
 
-  class Query implements PromiseLike<{ data: unknown; error: DbError | null }> {
+  class Query implements PromiseLike<{ data: unknown; error: DbError | null; count?: number }> {
     private op: Op = "select";
     private payload: Row[] = [];
     private options: { onConflict?: string; ignoreDuplicates?: boolean } = {};
@@ -39,11 +50,13 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
     private mode: "many" | "single" | "maybe" = "many";
     private orderBy: { col: string; asc: boolean } | null = null;
     private max: number | null = null;
+    private countMode: { head: boolean } | null = null;
 
     constructor(private readonly name: string) {}
 
-    select(columns = "*") {
+    select(columns = "*", o: { count?: "exact" | "planned" | "estimated"; head?: boolean } = {}) {
       this.columns = columns;
+      if (o.count) this.countMode = { head: o.head ?? false };
       return this;
     }
     insert(payload: Row | Row[]) {
@@ -77,12 +90,34 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
       this.filters.push((r) => values.includes(r[col]));
       return this;
     }
-    gte(col: string, value: number) {
-      this.filters.push((r) => typeof r[col] === "number" && (r[col] as number) >= value);
+    neq(col: string, value: unknown) {
+      this.filters.push((r) => r[col] !== value);
       return this;
     }
-    lte(col: string, value: number) {
-      this.filters.push((r) => typeof r[col] === "number" && (r[col] as number) <= value);
+    gte(col: string, value: number | string) {
+      this.filters.push((r) => (compare(r[col], value) ?? -1) >= 0);
+      return this;
+    }
+    lte(col: string, value: number | string) {
+      this.filters.push((r) => (compare(r[col], value) ?? 1) <= 0);
+      return this;
+    }
+    gt(col: string, value: number | string) {
+      this.filters.push((r) => (compare(r[col], value) ?? -1) > 0);
+      return this;
+    }
+    lt(col: string, value: number | string) {
+      this.filters.push((r) => (compare(r[col], value) ?? 1) < 0);
+      return this;
+    }
+    /** `is(col, null)` matches null and missing values. */
+    is(col: string, value: null | boolean) {
+      this.filters.push((r) => (value === null ? r[col] == null : r[col] === value));
+      return this;
+    }
+    /** Supports `not(col, "is", null)` and `not(col, "eq", value)`. */
+    not(col: string, op: "is" | "eq", value: unknown) {
+      this.filters.push((r) => (op === "is" && value === null ? r[col] != null : r[col] !== value));
       return this;
     }
     order(col: string, o: { ascending?: boolean } = {}) {
@@ -126,7 +161,7 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
       });
     }
 
-    private execute(): { data: unknown; error: DbError | null } {
+    private execute(): { data: unknown; error: DbError | null; count?: number } {
       calls.push({ table: this.name, op: this.op, payload: this.payload, options: this.options });
       const failure = opts.failOn?.(this.name, this.op);
       if (failure) return { data: null, error: failure };
@@ -182,6 +217,9 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
       }
       if (this.max !== null) result = result.slice(0, this.max);
 
+      if (this.countMode) {
+        return { data: this.countMode.head ? null : result, error: null, count: result.length };
+      }
       if (this.mode === "many") return { data: result, error: null };
       if (this.mode === "single" && result.length !== 1) {
         return { data: null, error: { code: "PGRST116", message: "not exactly one row" } };
@@ -189,8 +227,10 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
       return { data: result[0] ?? null, error: null };
     }
 
-    then<T1 = { data: unknown; error: DbError | null }, T2 = never>(
-      onfulfilled?: ((v: { data: unknown; error: DbError | null }) => T1 | PromiseLike<T1>) | null,
+    then<T1 = { data: unknown; error: DbError | null; count?: number }, T2 = never>(
+      onfulfilled?:
+        | ((v: { data: unknown; error: DbError | null; count?: number }) => T1 | PromiseLike<T1>)
+        | null,
       onrejected?: ((reason: unknown) => T2 | PromiseLike<T2>) | null,
     ): PromiseLike<T1 | T2> {
       return Promise.resolve()
@@ -199,6 +239,18 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
     }
   }
 
-  const client = { from: (name: string) => new Query(name) };
+  const client = {
+    from: (name: string) => new Query(name),
+    rpc: async (name: string, args?: Record<string, unknown>) => {
+      calls.push({ table: `rpc:${name}`, op: "select", payload: args });
+      if (!opts.rpc) return { data: null, error: { code: "PGRST202", message: "rpc not mocked" } };
+      try {
+        return { data: await opts.rpc(name, args), error: null };
+      } catch (err) {
+        return { data: null, error: { code: "P0001", message: String(err) } };
+      }
+    },
+    storage: opts.storage,
+  };
   return { client: client as unknown as SupabaseClient, tables, calls, table };
 }

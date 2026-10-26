@@ -7,6 +7,8 @@ import {
   getCryptoKey,
   getLlmEnv,
   getSupabaseEnv,
+  getWebSearchEnv,
+  isGoogleConfigured,
   resetEnvCacheForTests,
   serverEnv,
 } from "@/lib/env";
@@ -124,5 +126,17 @@ describe("env", () => {
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
       "NEXT_PUBLIC_SUPABASE_URL",
     ]);
+  });
+
+  it("web search defaults to none and validates the provider", () => {
+    expect(getWebSearchEnv({}).WEBSEARCH_PROVIDER).toBe("none");
+    expect(getWebSearchEnv({ WEBSEARCH_PROVIDER: " Brave " }).WEBSEARCH_PROVIDER).toBe("brave");
+    expect(() => getWebSearchEnv({ WEBSEARCH_PROVIDER: "bing" })).toThrow(/WEBSEARCH_PROVIDER/);
+  });
+
+  it("isGoogleConfigured requires the three Google variables", () => {
+    expect(isGoogleConfigured(fullEnv)).toBe(true);
+    expect(isGoogleConfigured({ ...fullEnv, GOOGLE_CLIENT_SECRET: " " })).toBe(false);
+    expect(isGoogleConfigured({})).toBe(false);
   });
 });

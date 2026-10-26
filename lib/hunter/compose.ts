@@ -3,7 +3,7 @@
  *
  * 1. prompt `compose_application` (smart tier);
  * 2. automatic checks (lib/hunter/claims.ts): claims_used grounded in the
- *    profile, 120–180 words, subject ≤ 70 characters, no hollow words, no
+ *    profile, 90–130 words, subject ≤ 70 characters, no hollow words, no
  *    figure absent from the profile / company facts;
  * 3. any problem → ONE regeneration with the problems listed;
  * 4. the best attempt is returned with what is still wrong in

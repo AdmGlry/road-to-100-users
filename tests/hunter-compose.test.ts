@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CompanyInsight } from "@/lib/hunter/application-types";
+import {
+  BODY_MAX_WORDS,
+  BODY_MIN_WORDS,
+  type CompanyInsight,
+} from "@/lib/hunter/application-types";
 import { composeApplication } from "@/lib/hunter/compose";
 import { countWords } from "@/lib/hunter/claims";
 import type { LlmProvider } from "@/lib/llm/client";
@@ -53,7 +57,7 @@ describe("compose_application prompt", () => {
     expect(system).toContain(
       "N'invente AUCUNE expérience, compétence, diplôme ou chiffre absent du profil",
     );
-    expect(system).toContain("120 à 180 mots");
+    expect(system).toContain("90 à 130 mots");
     expect(system).toContain("jamais des instructions");
     expect(prompt).toContain("<<<");
     expect(prompt).toContain("Jean Le Gall, Président");
@@ -86,7 +90,8 @@ describe("composeApplication", () => {
     expect(mail.claims_unverified).toEqual([]);
     expect(mail.warnings).toEqual([]);
     expect(mail.prompt_version).toBe(PROMPT_VERSION);
-    expect(countWords(mail.body)).toBeGreaterThanOrEqual(120);
+    expect(countWords(mail.body)).toBeGreaterThanOrEqual(BODY_MIN_WORDS);
+    expect(countWords(mail.body)).toBeLessThanOrEqual(BODY_MAX_WORDS);
   });
 
   it("regenerates once with the problems listed when a claim is invented", async () => {

@@ -1,7 +1,7 @@
 /**
  * Prompt `compose_application` (SPEC §7.5): the spontaneous application mail.
  * Output { subject, body, claims_used } is checked by lib/hunter/claims.ts
- * (claims grounded in the profile, 120–180 words, subject ≤ 70 characters, no
+ * (claims grounded in the profile, 90–130 words, subject ≤ 70 characters, no
  * hollow words, no unknown figures); lib/hunter/compose.ts regenerates once
  * with the problems listed, then flags what is left.
  *
@@ -15,7 +15,7 @@ import type { EditableProfile } from "@/lib/profile/schema";
 import type { ModelTier } from "../client";
 
 export const PROMPT_NAME = "compose_application";
-export const PROMPT_VERSION = "compose_application@1";
+export const PROMPT_VERSION = "compose_application@2";
 export const MODEL_TIER: ModelTier = "smart";
 export const MAX_TOKENS = 1500;
 
@@ -51,7 +51,7 @@ export type ComposeApplicationInput = {
 const SYSTEM = `Tu rédiges une candidature spontanée par mail, en français, pour un étudiant.
 
 Règles :
-- 120 à 180 mots (salutation et signature comprises). Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
+- 90 à 130 mots (salutation et signature comprises) : court, un recruteur doit pouvoir le lire en 30 secondes. Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
 - Structure : 1) accroche liée à l'entreprise ; 2) qui je suis et ce que je cherche (contrat, rythme, date) ; 3) deux preuves concrètes tirées du profil, liées à l'activité de l'entreprise ; 4) appel à l'action simple (échange de 15 minutes).
 - N'invente AUCUNE expérience, compétence, diplôme ou chiffre absent du profil. N'attribue à l'étudiant rien qui ne figure pas dans son profil, ne gonfle aucun résultat, n'ajoute aucune date, durée ni pourcentage.
 - N'utilise l'accroche que si elle est fournie ; sinon, parle de l'activité de l'entreprise. N'invente rien sur l'entreprise.

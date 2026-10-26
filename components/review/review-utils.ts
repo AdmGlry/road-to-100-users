@@ -30,7 +30,7 @@ export function bodyLengthState(words: number): LengthState {
   return "ok";
 }
 
-/** "152 mots (conseillé : 120 à 180)" */
+/** "152 mots (conseillé : 90 à 130)" */
 export function wordCountLabel(words: number): string {
   return `${words} mot${words > 1 ? "s" : ""} (conseillé : ${BODY_MIN_WORDS} à ${BODY_MAX_WORDS})`;
 }

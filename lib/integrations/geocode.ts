@@ -36,8 +36,9 @@ const featureSchema = z.looseObject({
       postcode: z.string().nullish().catch(null),
       citycode: z.string().nullish().catch(null),
       context: z.string().nullish().catch(null),
+      score: z.number().nullish().catch(null),
     })
-    .catch({ city: null, name: null, postcode: null, citycode: null, context: null }),
+    .catch({ city: null, name: null, postcode: null, citycode: null, context: null, score: null }),
 });
 const responseSchema = z.looseObject({ features: z.array(z.unknown()).catch([]) });
 
@@ -52,6 +53,32 @@ export function departementFromPostcode(postcode: string | null | undefined): st
 /** First 5-digit postcode written in a free-text city ("44000 Nantes" → "44000"). */
 export function extractPostcode(value: string): string | null {
   return /\b(\d{5})\b/.exec(value)?.[1] ?? null;
+}
+
+/** "Saint-Herblain" → "saint herblain" (accents, case and punctuation ignored). */
+function normalizeName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * The API always returns its best guess, even for "France" or a typo far from
+ * any commune (e.g. "France" → Le Lamentin, Martinique). Keep a result only
+ * when the commune name matches what the student typed, or the API is sure.
+ */
+export function isPlausibleMatch(
+  query: string,
+  name: string | null,
+  score: number | null,
+): boolean {
+  const q = normalizeName(query.replace(/\b\d{5}\b/, ""));
+  const n = normalizeName(name ?? "");
+  if (q && n && (n === q || n.startsWith(`${q} `) || q.startsWith(`${n} `))) return true;
+  return typeof score === "number" && score >= 0.8;
 }
 
 function departementFromContext(context: string | null | undefined): string | null {
@@ -88,6 +115,8 @@ async function tryUrl(
     const [lng, lat] = feature.data.geometry.coordinates;
     if (!isValidPoint({ lat, lng })) return null;
     const p = feature.data.properties;
+    if (!postcode && !isPlausibleMatch(city, p.city ?? p.name ?? null, p.score ?? null))
+      return null;
     return {
       lat,
       lng,

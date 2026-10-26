@@ -17,8 +17,8 @@ export const MAX_PREPARE_AT_ONCE = 20;
 /** A preparation "running" for longer than this is resumed. */
 export const PREP_STALE_MS = 4 * 60_000;
 /** SPEC §7.5: mail body length. */
-export const BODY_MIN_WORDS = 120;
-export const BODY_MAX_WORDS = 180;
+export const BODY_MIN_WORDS = 90;
+export const BODY_MAX_WORDS = 130;
 export const SUBJECT_MAX_CHARS = 70;
 
 export type ContactSource = "pattern_guess" | "generic" | "user_input" | "website";

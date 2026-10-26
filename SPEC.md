@@ -352,7 +352,7 @@ Accroche vérifiée : {accroche + source} ou "aucune"
 Type de contrat recherché : {alternance/stage}, rythme : {rythme}, début : {date}
 
 Règles :
-- 120 à 180 mots. Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
+- 90 à 130 mots (réduit de 120–180 le 2026-10-26 après le premier test réel : trop long sur téléphone). Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
 - Structure : 1) accroche liée à l'entreprise ; 2) qui je suis et ce que je cherche (contrat, rythme, date) ; 3) deux preuves concrètes tirées du profil, liées à l'activité de l'entreprise ; 4) appel à l'action simple (échange de 15 minutes).
 - N'invente AUCUNE expérience, compétence, diplôme ou chiffre absent du profil.
 - N'utilise l'accroche que si elle est fournie ; sinon, parle de l'activité de l'entreprise.
@@ -376,7 +376,7 @@ Réponds en JSON : { "subject": string, "body": string, "claims_used": string[] 
 ### Critères d'acceptation
 
 - [ ] Une recherche « Business Analyst, alternance, Nantes, 30 km » renvoie au moins 20 entreprises pertinentes notées.
-- [ ] Chaque mail généré fait 120 à 180 mots et ne contient aucune affirmation absente du profil (test sur 10 générations).
+- [ ] Chaque mail généré fait 90 à 130 mots et ne contient aucune affirmation absente du profil (test sur 10 générations).
 - [ ] Le quota de 20 envois par 24 h est appliqué côté serveur (test unitaire + test d'intégration).
 - [ ] Un mail envoyé apparaît dans « Messages envoyés » du Gmail de l'utilisateur, avec le CV joint.
 - [ ] Une entreprise déjà contactée n'est plus proposée.

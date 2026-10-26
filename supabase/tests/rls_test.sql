@@ -576,6 +576,37 @@ $$;
 reset request.jwt.claim.sub;
 reset role;
 
+-- Sprint 4: cron ping helper (no-op without vault, path validated, cron only).
+do $$
+begin
+  perform public.trigger_cron_endpoint('/api/cron/sync-replies');
+  begin
+    perform public.trigger_cron_endpoint('https://evil.example/x');
+    raise exception 'FAIL: trigger_cron_endpoint accepted an arbitrary URL';
+  exception when raise_exception then
+    if sqlerrm like 'FAIL:%' then raise; end if;
+  end;
+  if (select followup_status from public.applications limit 1) is not null then
+    raise exception 'FAIL: followup_status should default to null';
+  end if;
+  raise notice 'PASS: trigger_cron_endpoint no-op without vault and path checked';
+end
+$$;
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  begin
+    perform public.trigger_cron_endpoint('/api/cron/sync-replies');
+    raise exception 'FAIL: authenticated may call trigger_cron_endpoint';
+  exception when insufficient_privilege then
+    raise notice 'PASS: trigger_cron_endpoint is not callable by clients';
+  end;
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
 -- GDPR: deleting auth user A removes ALL of A's rows.
 delete from auth.users where id = :user_a;
 

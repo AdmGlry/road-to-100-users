@@ -8,6 +8,8 @@
  *       text/plain; charset=utf-8 (base64)
  *       text/html; charset=utf-8 (base64)
  *     application/pdf attachment (base64), when given
+ * Follow-ups add In-Reply-To / References so Gmail and the recipient keep them
+ * in the original thread.
  *
  * Header values containing CR/LF are rejected (header injection). Non-ASCII
  * subjects and display names use RFC 2047 encoded-words (UTF-8, base64).
@@ -21,6 +23,10 @@ export type MimeInput = {
   text: string;
   html: string;
   attachment?: { filename: string; content: Uint8Array; mimeType: string };
+  /** Follow-up in the same thread (SPEC §8.3): `Message-ID` of the mail answered, with <>. */
+  inReplyTo?: string;
+  /** `References` chain (Message-IDs with <>); defaults to `inReplyTo`. */
+  references?: string[];
 };
 
 export class MimeError extends Error {
@@ -46,6 +52,9 @@ function assertEmail(value: string, field: string): void {
   assertHeaderSafe(value, field);
   if (!isValidEmail(value)) throw new MimeError(`Invalid ${field} address`);
 }
+
+/** `<local@domain>` without spaces, CR/LF or nested brackets. */
+const MESSAGE_ID_RE = /^<[^<>\s@]+@[^<>\s@]+>$/;
 
 const isAscii = (s: string) => /^[\x20-\x7e]*$/.test(s);
 
@@ -99,6 +108,10 @@ export function buildMimeMessage(input: MimeInput): string {
   assertHeaderSafe(input.from.name, "From");
   assertEmail(input.to, "To");
   assertHeaderSafe(input.subject, "Subject");
+  const refs = input.references ?? (input.inReplyTo ? [input.inReplyTo] : []);
+  for (const id of input.inReplyTo ? [input.inReplyTo, ...refs] : refs) {
+    if (!MESSAGE_ID_RE.test(id)) throw new MimeError("Invalid Message-ID");
+  }
   if (input.attachment) {
     assertHeaderSafe(input.attachment.filename, "filename");
     assertHeaderSafe(input.attachment.mimeType, "Content-Type");
@@ -113,6 +126,8 @@ export function buildMimeMessage(input: MimeInput): string {
     `From: ${formatAddress(input.from.name, input.from.email)}`,
     `To: ${input.to}`,
     `Subject: ${encodeHeaderWord(input.subject)}`,
+    ...(input.inReplyTo ? [`In-Reply-To: ${input.inReplyTo}`] : []),
+    ...(refs.length > 0 ? [`References: ${refs.join("\r\n ")}`] : []),
     "MIME-Version: 1.0",
     `Content-Type: multipart/mixed; boundary="${mixed}"`,
     "",

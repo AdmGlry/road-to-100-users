@@ -195,15 +195,15 @@ function BenefitVisual({ kind }: { kind: BenefitKey }) {
     // Story: a highlight inspects the companies one after another.
     return (
       <figure data-story="" className="mt-auto flex flex-col gap-2">
-        <ul className="bg-background relative flex flex-col rounded-xl border p-1 text-sm">
+        <ul className="bg-background relative flex flex-col rounded-2xl border p-1 text-sm">
           <li
             aria-hidden="true"
-            className="bg-surface animate-story-rows absolute inset-x-1 top-1 h-14 rounded-md"
+            className="bg-surface animate-story-rows absolute inset-x-1 top-1 h-12 rounded-xl"
           />
           {SAMPLE_COMPANIES.map((company) => (
             <li
               key={company.name}
-              className="relative flex h-14 items-center justify-between gap-3 px-3"
+              className="relative flex h-12 items-center justify-between gap-3 px-3"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">{company.name}</span>
@@ -245,18 +245,18 @@ function BenefitVisual({ kind }: { kind: BenefitKey }) {
   if (kind === "gmail") {
     // Story: a sheen passes over the attachment, like a mail leaving.
     return (
-      <p
-        data-story=""
-        className="bg-background relative mt-auto flex items-center gap-2 self-start overflow-hidden rounded-xl border px-3 py-2 text-sm"
-      >
-        <PaperclipIcon className="text-muted-foreground size-4" aria-hidden="true" />
-        <span className="sr-only">Pièce jointe : </span>
-        CV_Lea_Martin.pdf
-        <span
-          aria-hidden="true"
-          className="bg-foreground/10 animate-story-sheen absolute inset-y-0 left-0 w-2/5 -skew-x-12"
-        />
-      </p>
+      <figure data-story="" className="mt-auto flex flex-col items-start gap-2">
+        <p className="bg-background relative flex items-center gap-2 overflow-hidden rounded-xl border px-3 py-2 text-sm">
+          <PaperclipIcon className="text-muted-foreground size-4" aria-hidden="true" />
+          <span className="sr-only">Pièce jointe : </span>
+          CV_Lea_Martin.pdf
+          <span
+            aria-hidden="true"
+            className="bg-foreground/10 animate-story-sheen absolute inset-y-0 left-0 w-2/5 -skew-x-12"
+          />
+        </p>
+        <figcaption className="text-muted-foreground text-xs">Exemple fictif</figcaption>
+      </figure>
     );
   }
   if (kind === "replies") {
@@ -300,7 +300,7 @@ function BenefitVisual({ kind }: { kind: BenefitKey }) {
 
 function SourcePulse() {
   return (
-    <sup className="text-signal relative ml-0.5 inline-flex font-semibold">
+    <sup className="text-signal relative ml-0.5 inline-flex text-xs font-semibold">
       <span
         aria-hidden="true"
         className="bg-signal animate-story-pulse absolute inset-0 m-auto size-3 rounded-full opacity-0"

@@ -441,8 +441,14 @@
     background-color: var(--background);
     color: var(--foreground);
   }
+  /* Literal values: the variables resolve on body, outside `.landing`. */
   body:has(> .landing) {
-    background-color: var(--background);
+    background-color: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    body:has(> .landing) {
+      background-color: #000000;
+    }
   }
   .landing ::selection {
     background-color: var(--foreground);

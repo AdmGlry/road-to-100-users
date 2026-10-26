@@ -63,7 +63,7 @@ export default async function Image() {
         style={{
           display: "flex",
           flexDirection: "column",
-          fontSize: 80,
+          fontSize: 72,
           lineHeight: 1,
           letterSpacing: -2,
           backgroundImage: "linear-gradient(to right, #FFFFFF, #9B9B9B)",

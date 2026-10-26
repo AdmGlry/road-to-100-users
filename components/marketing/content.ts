@@ -39,7 +39,7 @@ export const BENEFITS: readonly { key: BenefitKey; title: string; body: string }
   {
     key: "mail",
     title: "Un mail qui part de ton parcours",
-    body: "Chaque phrase vient de ton CV ou d'une source publique sur l'entreprise. Un contrôle automatique vérifie qu'aucun fait n'est inventé.",
+    body: "Chaque phrase vient de ton CV ou d'une source publique sur l'entreprise. Un contrôle automatique vérifie que chaque élément de ton profil cité dans la candidature existe bien.",
   },
   {
     key: "gmail",
@@ -131,7 +131,7 @@ export const FAQ = [
   },
   {
     q: "L'IA peut inventer une expérience pour faire joli ?",
-    a: "Non. Elle n'écrit que ce qui figure dans ton profil ou dans une source publique sur l'entreprise. Un contrôle automatique vérifie chaque mail avant que tu le voies, et tu as le dernier mot.",
+    a: "Non. Elle n'écrit que ce qui figure dans ton profil ou dans une source publique sur l'entreprise. Un contrôle automatique vérifie chaque candidature avant que tu la voies, et tu as le dernier mot.",
   },
   {
     q: "Pourquoi 20 envois au maximum par jour ?",

@@ -10,6 +10,7 @@ export default function NotFound() {
     <main
       className={`${geist.variable} landing flex flex-1 flex-col items-center justify-center gap-6 px-4 py-24 text-center`}
     >
+      <title>Page introuvable · Spontané</title>
       <Logo className="size-10" />
       <h1 className="text-heading-gradient max-w-[680px] pb-2 text-4xl font-semibold tracking-tight sm:text-5xl">
         Cette page n&apos;existe pas

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 
 import { CONTAINER } from "@/components/marketing/container";
@@ -17,12 +17,19 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
+
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <div className={`${geist.variable} landing flex flex-1 flex-col`}>
       <a
         href="#contenu"
-        className="bg-primary text-primary-foreground fixed top-4 left-4 z-[60] -translate-y-24 rounded-full px-3 py-2 text-sm font-semibold focus-visible:translate-y-0"
+        className="bg-primary text-primary-foreground fixed top-4 left-4 z-[60] flex h-10 -translate-y-24 items-center rounded-full px-3 text-sm font-semibold focus-visible:translate-y-0"
       >
         Aller au contenu
       </a>
@@ -38,7 +45,7 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
 
 function SiteFooter() {
   return (
-    <footer className="border-t">
+    <footer id="pied" className="border-t">
       <div
         className={`${CONTAINER} text-muted-foreground flex flex-col gap-8 py-12 text-sm sm:flex-row sm:items-start sm:justify-between`}
       >
@@ -76,12 +83,12 @@ function SiteFooter() {
           <ul className="flex flex-col">
             {/* Pages written with the Sprint 5 RGPD work: shown disabled until then. */}
             <li>
-              <span aria-disabled="true" className="flex h-10 items-center opacity-60">
+              <span aria-disabled="true" className="flex h-10 items-center">
                 Confidentialité (bientôt)
               </span>
             </li>
             <li>
-              <span aria-disabled="true" className="flex h-10 items-center opacity-60">
+              <span aria-disabled="true" className="flex h-10 items-center">
                 Conditions (bientôt)
               </span>
             </li>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { GoogleLogoIcon } from "@phosphor-icons/react";
+
 import { NAV_LINKS } from "@/components/marketing/content";
 import { Logo } from "@/components/marketing/logo";
 import { cn } from "@/lib/utils";
@@ -21,6 +23,7 @@ export function SiteNav() {
   const [current, setCurrent] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const lastLinkRef = useRef<HTMLAnchorElement>(null);
 
   const close = useCallback((restoreFocus: boolean) => {
     setOpen(false);
@@ -51,9 +54,23 @@ export function SiteNav() {
     const root = document.documentElement;
     const previous = root.style.overflow;
     root.style.overflow = "hidden";
+    // Modal menu: the page behind it leaves the tab order and the accessibility tree.
+    const behind = [document.getElementById("contenu"), document.getElementById("pied")];
+    behind.forEach((el) => {
+      if (el) el.inert = true;
+    });
     firstLinkRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") close(true);
+      // Tab from the last item of the menu loops back to the toggle.
+      if (
+        event.key === "Tab" &&
+        !event.shiftKey &&
+        document.activeElement === lastLinkRef.current
+      ) {
+        event.preventDefault();
+        toggleRef.current?.focus();
+      }
     };
     const desktop = window.matchMedia("(min-width: 48rem)");
     const onResize = () => {
@@ -63,6 +80,9 @@ export function SiteNav() {
     desktop.addEventListener("change", onResize);
     return () => {
       root.style.overflow = previous;
+      behind.forEach((el) => {
+        if (el) el.inert = false;
+      });
       window.removeEventListener("keydown", onKey);
       desktop.removeEventListener("change", onResize);
     };
@@ -87,7 +107,7 @@ export function SiteNav() {
               <li key={link.id}>
                 <a
                   href={link.href}
-                  aria-current={current === link.id ? "true" : undefined}
+                  aria-current={current === link.id ? "location" : undefined}
                   className={cn(
                     "flex h-10 items-center rounded-full px-3 text-sm font-medium transition-colors duration-300 ease-(--ease-landing)",
                     current === link.id
@@ -135,9 +155,12 @@ export function SiteNav() {
 
       <div
         id="menu-mobile"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
         inert={!open}
         className={cn(
-          "bg-background/95 fixed inset-0 z-40 flex flex-col px-4 pt-24 pb-8 backdrop-blur-2xl transition-opacity duration-300 ease-(--ease-landing) md:hidden",
+          "bg-background/95 fixed inset-0 z-40 flex flex-col px-4 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] backdrop-blur-2xl transition-opacity duration-300 ease-(--ease-landing) md:hidden",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       >
@@ -176,9 +199,11 @@ export function SiteNav() {
           )}
         >
           <Link
+            ref={lastLinkRef}
             href="/login"
-            className="bg-primary text-primary-foreground hover:bg-primary-hover flex w-full items-center justify-center rounded-xl px-3 py-2 text-base font-semibold transition-[background-color,scale] duration-300 ease-(--ease-landing) active:scale-[0.98]"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-base font-semibold transition-[background-color,scale] duration-300 ease-(--ease-landing) active:scale-[0.98]"
           >
+            <GoogleLogoIcon weight="bold" className="size-5" aria-hidden="true" />
             Commencer avec Google
           </Link>
         </div>

@@ -103,6 +103,13 @@ describe("fixtures", () => {
 });
 
 describe("cleanReplyText", () => {
+  it("cuts at the usual sign-off (name, title and phone follow it)", () => {
+    const text = cleanReplyText(
+      "Bonjour,\n\nVotre profil nous intéresse.\n\nCordialement,\nThomas Bernard\nDRH\n06 12 34 56 78",
+    );
+    expect(text).toBe("Bonjour,\n\nVotre profil nous intéresse.");
+  });
+
   it("drops the French Gmail attribution and the quoted lines", () => {
     const text = cleanReplyText(FIXTURES.find((f) => f.name === "interview-visio")!.text);
     expect(text).toContain("Mardi 14h ou jeudi 10h");
@@ -150,6 +157,64 @@ describe("extractEmailAddress", () => {
 
 describe("ruleClassify", () => {
   const base = { from: "rh@acme.fr", subject: "Re: Candidature", autoHeaders: {}, text: "Bonjour" };
+
+  it("keeps delayed and spam-blocked reports out of 'bounce'", () => {
+    const dsn = { ...base, from: "mailer-daemon@googlemail.com" };
+    expect(
+      ruleClassify({ ...dsn, subject: "Delivery Status Notification (Delay)" })?.suggested_action,
+    ).toBe(SUGGESTED_ACTIONS.delayed);
+    expect(
+      ruleClassify({ ...dsn, subject: "Undeliverable", text: "Mailbox full" })?.classification,
+    ).toBe("auto_reply");
+    expect(
+      ruleClassify({
+        ...dsn,
+        subject: "Delivery Status Notification (Failure)",
+        text: "550 5.7.1 rejected as spam",
+      }),
+    ).toMatchObject({ classification: "auto_reply", suggested_action: SUGGESTED_ACTIONS.blocked });
+    expect(
+      ruleClassify({
+        ...dsn,
+        subject: "Delivery Status Notification (Failure)",
+        text: "Address not found",
+      })?.classification,
+    ).toBe("bounce");
+  });
+
+  it("reads auto-replies that are refusals or 'left the company' notices", () => {
+    const auto = { ...base, autoHeaders: { "auto-submitted": "auto-replied" } };
+    expect(
+      ruleClassify({
+        ...auto,
+        text: "Marie Curie a quitté l'entreprise. Écrivez à rh@acme.example.",
+      })?.classification,
+    ).toBe("bounce");
+    expect(
+      ruleClassify({
+        ...auto,
+        text: "Nous ne pourrons pas donner une suite favorable à votre candidature.",
+      })?.classification,
+    ).toBe("rejection");
+    expect(
+      ruleClassify({ ...auto, text: "Je suis absente jusqu'au 3 novembre." })?.classification,
+    ).toBe("auto_reply");
+  });
+
+  it("detects a request not to be contacted again (no LLM call)", () => {
+    for (const text of [
+      "Merci de ne plus me contacter.",
+      "Je vous demande de supprimer mes données.",
+      "STOP",
+    ]) {
+      expect(ruleClassify({ ...base, text })).toMatchObject({
+        classification: "rejection",
+        source: "rule",
+        suggested_action: SUGGESTED_ACTIONS.opt_out,
+      });
+    }
+    expect(ruleClassify({ ...base, text: "Nous ne stoppons pas le recrutement." })).toBeNull();
+  });
 
   it("detects bounces from the sender or the subject", () => {
     expect(ruleClassify({ ...base, from: "MAILER-DAEMON@acme.fr" })?.classification).toBe("bounce");
@@ -207,6 +272,15 @@ describe("prompt classify_reply", () => {
     expect(prompt).toContain("Re: Candidature");
   });
 
+  it("never sends e-mail addresses, phone numbers or links to the model", () => {
+    const { prompt } = buildClassifyReplyPrompt({
+      text: "Appelez-moi au 06 12 34 56 78 ou écrivez à t.bernard@acme.example (https://acme.example/rdv).",
+      subject: "Re: Candidature – t.bernard@acme.example",
+    });
+    expect(prompt).not.toMatch(/06 12|@|https?:/);
+    expect(prompt).toContain("Appelez-moi");
+  });
+
   it("normalises and clamps the output", () => {
     const parsed = outputSchema.parse({
       category: " Info Request ",
@@ -247,7 +321,7 @@ describe("classifyReply", () => {
         expect(result.source, f.name).toBe("llm");
         expect(prompts, f.name).toHaveLength(1);
         // Only the reply: no profile, no student address.
-        expect(prompts[0]).not.toContain("lea.martin@gmail.com");
+        expect(prompts[0]).not.toContain("lea.martin@example.com");
       }
       expect(result.suggested_action.length).toBeGreaterThan(0);
     }

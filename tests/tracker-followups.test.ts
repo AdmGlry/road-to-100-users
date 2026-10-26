@@ -412,14 +412,25 @@ describe("sendFollowup", () => {
     });
   });
 
-  it("falls back to the first SENT message, and sends without headers when unavailable", async () => {
-    const { send, sendRawMessage, getThreadMetadata } = setup([draft()]);
+  it("never sends a 'Re:' without In-Reply-To when the thread cannot be read", async () => {
+    const { send, sendRawMessage, getThreadMetadata, appRow } = setup([draft()]);
     getThreadMetadata.mockRejectedValueOnce(new GmailReadError(403, "insufficientPermissions"));
-    await send();
-    const [, raw, o] = sendRawMessage.mock.calls[0] as unknown as [string, string, object];
-    expect(o).toEqual({ threadId: "thread-1" });
-    expect(Buffer.from(raw, "base64url").toString("utf8")).not.toContain("In-Reply-To");
+    await expectFollowupError(send(), "google_down");
+    expect(sendRawMessage).not.toHaveBeenCalled();
+    expect(appRow().followup_status).toBe("draft");
+  });
 
+  it("refuses when the thread holds a reply that is not synced yet", async () => {
+    const { send, sendRawMessage, getThreadMetadata } = setup([draft()]);
+    getThreadMetadata.mockResolvedValueOnce([
+      ...THREAD,
+      { ...THREAD[0], id: "new-reply", labelIds: ["INBOX"], from: "rh@acme.example" },
+    ]);
+    await expectFollowupError(send(), "new_reply");
+    expect(sendRawMessage).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the first SENT message for the Message-ID", () => {
     const other = { ...THREAD[0], id: "x", messageIdHeader: "<sent2@mail.gmail.com>" };
     expect(originalMessageId([other], "missing")).toBe("<sent2@mail.gmail.com>");
     expect(originalMessageId([{ ...other, messageIdHeader: "bad id" }], null)).toBeNull();

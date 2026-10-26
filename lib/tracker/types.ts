@@ -83,7 +83,7 @@ export const FOLLOWUP_MAX_WORDS = 80;
 /** Max characters of a stored reply snippet (DB check). */
 export const SNIPPET_MAX_CHARS = 200;
 /** Max characters of reply text sent to the classifier (SPEC §8.2). */
-export const REPLY_TEXT_MAX_CHARS = 2000;
+export const REPLY_TEXT_MAX_CHARS = 1000;
 /** "Synchroniser maintenant" at most once every N minutes per student. */
 export const MANUAL_SYNC_COOLDOWN_MIN = 5;
 

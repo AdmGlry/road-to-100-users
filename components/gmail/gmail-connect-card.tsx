@@ -64,7 +64,9 @@ function Consent() {
             <CheckIcon className="text-success mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
               Lire uniquement les réponses aux mails envoyés par Spontané, pour suivre tes
-              candidatures à ta place.
+              candidatures à ta place. Pour les classer (entretien, refus…), leur texte, sans
+              adresses ni numéros de téléphone, est analysé par un service d&apos;IA externe ;
+              Spontané n&apos;en garde qu&apos;un extrait de 200 caractères.
             </span>
           </li>
         </ul>

@@ -51,7 +51,8 @@ import {
 } from "@/lib/llm/prompts/compose-followup";
 import type { EditableProfile } from "@/lib/profile/schema";
 import { loadEditableProfile } from "@/lib/profile/service";
-import { releaseSendSlot, reserveSendSlot } from "@/lib/quotas";
+import { releaseSendSlot, reserveSendSlot, SendTooSoonError } from "@/lib/quotas";
+import { receivedMessages } from "@/lib/tracker/sync";
 
 import {
   FOLLOWUP_AFTER_DAYS,
@@ -87,6 +88,8 @@ export type FollowupErrorCode =
   | "rate_limited"
   | "google_down"
   | "uncertain"
+  | "too_soon"
+  | "new_reply"
   | "internal"
   | "db";
 
@@ -114,6 +117,10 @@ export const FOLLOWUP_ERRORS: Record<FollowupErrorCode, string> = {
     "Gmail n'a pas répondu et la relance n'est pas partie. Réessaie dans quelques minutes.",
   uncertain:
     "L'envoi de la relance a été interrompu et on ne sait pas si elle est partie. Regarde dans « Messages envoyés » de ton Gmail avant de la renvoyer.",
+  too_soon:
+    "Un autre de tes mails vient de partir : on espace les envois d'au moins 30 secondes. Réessaie dans une minute.",
+  new_reply:
+    "Une nouvelle réponse est arrivée dans cette conversation : clique « Synchroniser maintenant » et lis-la avant de relancer.",
   internal: "L'envoi de la relance a échoué à cause d'une erreur de notre côté. Réessaie.",
   db: "Ton changement n'a pas été enregistré. Vérifie ta connexion puis réessaie.",
 };
@@ -741,16 +748,34 @@ export async function sendFollowup(
       return await fail("google_down");
     }
 
+    let messages: ThreadMessageMeta[];
     try {
-      const messages = await deps.getThreadMetadata(token.accessToken, threadId);
-      inReplyTo = originalMessageId(messages, row.gmail_message_id);
+      messages = await deps.getThreadMetadata(token.accessToken, threadId);
     } catch (err) {
       logFailure("getThreadMetadata", err);
       if (err instanceof GmailReadError && err.status === 401) {
         await markConnectionExpired(admin, userId);
         return await fail("reconnect");
       }
-      // Still sent with threadId: Gmail keeps it in the thread for the sender.
+      // Never send a "Re:" without In-Reply-To (looks like a fake reply).
+      return await fail("google_down");
+    }
+    inReplyTo = originalMessageId(messages, row.gmail_message_id);
+    if (!inReplyTo) return await fail("google_down");
+
+    // A reply or bounce not synced yet: never follow up blindly.
+    const received = receivedMessages(messages, row, token.email).map((m) => m.id);
+    if (received.length > 0) {
+      const { data: known, error: knownError } = await admin
+        .from("replies")
+        .select("gmail_message_id")
+        .eq("user_id", userId)
+        .in("gmail_message_id", received);
+      if (knownError) throw knownError;
+      const stored = new Set(
+        ((known ?? []) as { gmail_message_id: string }[]).map((r) => r.gmail_message_id),
+      );
+      if (received.some((id) => !stored.has(id))) return await fail("new_reply");
     }
 
     const { data: profile, error: profileError } = await admin
@@ -785,6 +810,7 @@ export async function sendFollowup(
   try {
     slotId = await deps.reserveSendSlot(admin, userId, applicationId);
   } catch (err) {
+    if (err instanceof SendTooSoonError) return await fail("too_soon");
     logFailure("reserveSendSlot", err);
     return await fail("internal");
   }

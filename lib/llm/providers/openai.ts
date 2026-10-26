@@ -25,6 +25,8 @@ type OpenAiCompatibleOptions = {
   modelFallbacks?: boolean;
   /** Abort a request that takes longer than this (free models can hang). Default 45 s. */
   timeoutMs?: number;
+  /** Extra top-level fields of every request body (e.g. OpenRouter provider preferences). */
+  extraBody?: Record<string, unknown>;
 };
 
 /** Splits "a, b ,c" into ["a","b","c"] (empty entries dropped). */
@@ -45,6 +47,7 @@ export class OpenAiProvider implements LlmProvider {
   private readonly maxTokensParam: "max_completion_tokens" | "max_tokens";
   private readonly modelFallbacks: boolean;
   private readonly timeoutMs: number;
+  private readonly extraBody: Record<string, unknown>;
 
   constructor(opts: OpenAiCompatibleOptions) {
     this.apiKey = opts.apiKey;
@@ -55,6 +58,7 @@ export class OpenAiProvider implements LlmProvider {
     this.maxTokensParam = opts.maxTokensParam ?? "max_completion_tokens";
     this.modelFallbacks = opts.modelFallbacks ?? false;
     this.timeoutMs = opts.timeoutMs ?? 45_000;
+    this.extraBody = opts.extraBody ?? {};
   }
 
   async complete(req: LlmCompletionRequest): Promise<LlmCompletionResult> {
@@ -71,6 +75,7 @@ export class OpenAiProvider implements LlmProvider {
         ...this.extraHeaders,
       },
       body: JSON.stringify({
+        ...this.extraBody,
         ...this.modelFields(req.model),
         messages,
         [this.maxTokensParam]: req.maxTokens,
@@ -104,6 +109,11 @@ export function createOpenRouterProvider(opts: {
   apiKey: string;
   fetch?: typeof fetch;
   appUrl?: string;
+  /**
+   * Only route to providers that do not store or train on prompts
+   * (`provider.data_collection = "deny"`). Excludes most free models.
+   */
+  denyDataCollection?: boolean;
 }): OpenAiProvider {
   return new OpenAiProvider({
     apiKey: opts.apiKey,
@@ -112,6 +122,7 @@ export function createOpenRouterProvider(opts: {
     label: "OpenRouter",
     maxTokensParam: "max_tokens",
     modelFallbacks: true,
+    extraBody: opts.denyDataCollection ? { provider: { data_collection: "deny" } } : {},
     // Optional attribution headers documented by OpenRouter.
     extraHeaders: {
       ...(opts.appUrl ? { "HTTP-Referer": opts.appUrl } : {}),

@@ -108,3 +108,106 @@ begin
   end if;
 end
 $$;
+
+-- -----------------------------------------------------------------------------
+-- Client guard (20261025060000) extended to the Sprint 4 columns: follow-ups,
+-- interview notification and manual board moves are written by the server only.
+-- -----------------------------------------------------------------------------
+create or replace function public.applications_guard_client_write()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if new.status <> 'draft'
+       or new.approved_at is not null
+       or new.scheduled_for is not null
+       or new.send_claimed_at is not null
+       or new.sent_at is not null
+       or new.gmail_message_id is not null
+       or new.gmail_thread_id is not null
+       or new.followup_status is not null
+       or new.followup_approved_at is not null
+       or new.followup_sent_at is not null
+       or new.interview_notified_at is not null
+       or new.status_set_manually then
+      raise exception 'applications: forbidden client insert' using errcode = '42501';
+    end if;
+    return new;
+  end if;
+
+  if old.status not in ('draft', 'approved')
+     or new.status not in ('draft', 'approved')
+     or old.send_claimed_at is not null
+     or new.send_claimed_at is distinct from old.send_claimed_at
+     or new.sent_at is distinct from old.sent_at
+     or new.gmail_message_id is distinct from old.gmail_message_id
+     or new.gmail_thread_id is distinct from old.gmail_thread_id
+     or new.lead_id is distinct from old.lead_id
+     or new.followup_status is distinct from old.followup_status
+     or new.followup_subject is distinct from old.followup_subject
+     or new.followup_body is distinct from old.followup_body
+     or new.followup_approved_at is distinct from old.followup_approved_at
+     or new.followup_sent_at is distinct from old.followup_sent_at
+     or new.followup_count is distinct from old.followup_count
+     or new.interview_notified_at is distinct from old.interview_notified_at
+     or new.status_set_manually is distinct from old.status_set_manually
+     or (new.approved_at is not null and new.status <> 'approved')
+     or (new.scheduled_for is not null
+         and (new.status <> 'approved' or new.approved_at is null or new.contact_id is null)) then
+    raise exception 'applications: forbidden client update' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.applications_guard_client_write() from public, anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Spacing enforced with the quota, under the same per-user lock: no two sends
+-- (applications or follow-ups) of a student less than 30 s apart (SPEC §7.6).
+-- Quota reached → null (unchanged); too soon → exception 'send_too_soon'.
+-- -----------------------------------------------------------------------------
+create or replace function public.reserve_send_slot(
+  p_user uuid,
+  p_application uuid,
+  p_limit int default 20
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  perform pg_advisory_xact_lock(hashtextextended('send_quota:' || p_user::text, 0));
+  if (
+    select count(*)
+    from public.send_log
+    where user_id = p_user
+      and sent_at > now() - interval '24 hours'
+  ) >= p_limit then
+    return null;
+  end if;
+  if exists (
+    select 1 from public.send_log
+    where user_id = p_user
+      and sent_at > now() - interval '30 seconds'
+  ) then
+    raise exception 'send_too_soon' using errcode = 'P0001';
+  end if;
+  insert into public.send_log (user_id, application_id)
+  values (p_user, p_application)
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+revoke all on function public.reserve_send_slot(uuid, uuid, int) from public, anon, authenticated;
+grant execute on function public.reserve_send_slot(uuid, uuid, int) to service_role;

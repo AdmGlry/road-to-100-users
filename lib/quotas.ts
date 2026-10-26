@@ -79,9 +79,18 @@ export async function getSendQuota(
   };
 }
 
+/** Another send of the student left less than 30 s ago: retry later (SPEC §7.6 spacing). */
+export class SendTooSoonError extends Error {
+  constructor() {
+    super("send too soon after the previous one");
+    this.name = "SendTooSoonError";
+  }
+}
+
 /**
  * Atomically reserves one send in the rolling 24 h quota (service-role
  * client). Returns the send_log id, or null when the quota is reached.
+ * Throws SendTooSoonError when the previous send is less than 30 s old.
  */
 export async function reserveSendSlot(
   admin: SupabaseClient,
@@ -93,6 +102,7 @@ export async function reserveSendSlot(
     p_application: applicationId,
     p_limit: SEND_LIMIT_PER_24H,
   });
+  if (error && /send_too_soon/.test(error.message ?? "")) throw new SendTooSoonError();
   if (error) throw new Error(`reserve_send_slot failed (${error.code ?? "unknown"})`);
   return typeof data === "string" && data.length > 0 ? data : null;
 }

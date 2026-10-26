@@ -12,7 +12,7 @@ const USER = "0a0a0a0a-0000-4000-8000-0000000000aa";
 const OTHER = "0b0b0b0b-0000-4000-8000-0000000000bb";
 const NOW = new Date("2026-10-26T10:00:00.000Z");
 const daysAgo = (d: number) => new Date(NOW.getTime() - d * 24 * 3600_000).toISOString();
-const STUDENT = { [USER]: "lea.martin@gmail.com", [OTHER]: "tom.durand@gmail.com" };
+const STUDENT = { [USER]: "lea.martin@example.com", [OTHER]: "tom.durand@example.com" };
 
 type Row = Record<string, unknown>;
 
@@ -55,7 +55,7 @@ function msg(id: string, overrides: Partial<ThreadMessageMeta> = {}): ThreadMess
 
 const ORIGINAL = msg("msg-sent", {
   labelIds: ["SENT"],
-  from: "Léa Martin <lea.martin@gmail.com>",
+  from: "Léa Martin <lea.martin@example.com>",
   internalDate: NOW.getTime() - 3 * 24 * 3600_000,
 });
 
@@ -180,8 +180,8 @@ describe("syncReplies", () => {
       threads: {
         "thread-1": [
           ORIGINAL,
-          msg("msg-followup", { labelIds: ["SENT"], from: "Léa <lea.martin@gmail.com>" }),
-          msg("msg-other-client", { labelIds: ["INBOX"], from: "LEA.MARTIN@GMAIL.COM" }),
+          msg("msg-followup", { labelIds: ["SENT"], from: "Léa <lea.martin@example.com>" }),
+          msg("msg-other-client", { labelIds: ["INBOX"], from: "LEA.MARTIN@EXAMPLE.COM" }),
           msg("msg-draft", { labelIds: ["DRAFT"] }),
         ],
       },

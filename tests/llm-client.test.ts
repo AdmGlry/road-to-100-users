@@ -254,6 +254,23 @@ describe("providers", () => {
     expect(body.max_completion_tokens).toBeUndefined();
   });
 
+  it("OpenRouter provider can refuse providers that keep prompts", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+          status: 200,
+        }),
+    );
+    const p = createOpenRouterProvider({
+      apiKey: "sk-or-x",
+      denyDataCollection: true,
+      fetch: fetchMock as typeof fetch,
+    });
+    await p.complete({ messages: [{ role: "user", content: "hi" }], model: "m", maxTokens: 5 });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string).provider).toEqual({ data_collection: "deny" });
+  });
+
   it("OpenRouter provider sends a comma-separated model setting as fallbacks", async () => {
     const fetchMock = vi.fn(
       async () =>

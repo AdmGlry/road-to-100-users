@@ -36,7 +36,20 @@ export const SUGGESTED_ACTIONS = {
   auto_reply:
     "C'est une réponse automatique : rien à faire pour l'instant, attends la vraie réponse.",
   fallback: "Lis cette réponse dans ton Gmail.",
+  delayed:
+    "Ton mail n'est pas encore arrivé, le serveur du destinataire réessaie : attends quelques jours avant de changer de contact.",
+  blocked:
+    "Ton mail a été bloqué par un filtre anti-spam : ne renvoie pas le même texte tout de suite, personnalise-le d'abord.",
+  left_company:
+    "Cette personne a quitté l'entreprise : choisis un autre contact et renvoie ta candidature.",
+  rejection: "C'est un refus : inutile de relancer, concentre-toi sur tes autres candidatures.",
+  opt_out:
+    "Ce recruteur ne souhaite plus être contacté : ne le relance pas et ne lui écris plus depuis Spontané.",
 } as const;
+
+/** "Ne plus me contacter" / "supprimez mes données" (GDPR objection, art. 21). */
+const OPT_OUT_RE =
+  /\b(ne (plus|pas) (me|nous) (contacter|recontacter|écrire|solliciter)|(supprim|effac)\w* (mes|nos) (données|coordonnées)|désinscri\w*|unsubscribe|stop)\b/i;
 
 // ---------------------------------------------------------------------------
 // Text cleaning
@@ -78,13 +91,17 @@ function historyStart(lines: string[]): number {
  * blocks) and signature (after "-- ") removed, whitespace collapsed,
  * REPLY_TEXT_MAX_CHARS characters max.
  */
+const SIGN_OFF_RE =
+  /^(bien |très )?(cordialement|sincèrement|amicalement|salutations( distinguées)?|bien à (vous|toi)|bonne (journée|soirée|fin de journée)|belle journée|à bientôt|(best|kind)? ?regards|best)[\s,.!]*$/i;
+
 export function cleanReplyText(text: string): string {
   let lines = (text ?? "").replace(/\r\n?/g, "\n").replace(/ /g, " ").split("\n");
 
   const start = historyStart(lines);
   if (start >= 0) lines = lines.slice(0, start);
 
-  const signature = lines.findIndex((l) => /^--\s*$/.test(l));
+  // Signature: "-- " line, or the usual sign-off (name, title, phone follow it).
+  const signature = lines.findIndex((l) => /^--\s*$/.test(l) || SIGN_OFF_RE.test(l.trim()));
   if (signature >= 0) lines = lines.slice(0, signature);
 
   const cleaned = lines
@@ -143,30 +160,44 @@ function hasAutoHeaders(headers: Record<string, string>): boolean {
   return precedence === "auto_reply" || precedence === "bulk" || precedence === "junk";
 }
 
-/** Bounce or auto-reply recognised without the LLM; null when the LLM must decide. */
+/** Delivery delayed / mailbox full: the server keeps retrying, the address may be fine. */
+const DSN_SOFT =
+  /\(delay\)|delayed|retrying|will (retry|continue)|nouvelle tentative|remise différée|\b4\.\d{1,3}\.\d{1,3}\b|mailbox (is )?full|boîte (aux lettres )?pleine|quota (exceeded|dépassé)/i;
+/** Refused by an anti-spam or policy filter: changing the address would not help. */
+const DSN_BLOCKED = /\b5\.7\.\d{1,3}\b|spam|blocked|bloqué|policy|blacklist|liste noire/i;
+/** Auto-reply saying the person left: the address is unusable. */
+const LEFT_COMPANY =
+  /(a|ont) quitté (l'entreprise|la société|nos effectifs|le groupe)|ne fait plus partie|n'est plus (en poste|joignable|consultée|utilisée|active)|no longer (with|works|employed|in use|monitored|active)|has left the company/i;
+/** Refusal sent by a recruitment tool (carries auto-reply headers). */
+const AUTOMATED_REJECTION =
+  /ne (pas )?(pourrons|pouvons) (pas )?donner (une )?suite|ne donnerons pas (de )?suite|pas (de )?suite favorable|candidature n'a pas été retenue|pas été retenue|regret to inform|not (be )?moving forward/i;
+
+const rule = (
+  classification: ClassifiedReply["classification"],
+  suggested_action: string,
+): ClassifiedReply => ({ classification, confidence: 1, suggested_action, source: "rule" });
+
+/** Bounce, auto-reply or opt-out recognised without the LLM; null when the LLM must decide. */
 export function ruleClassify(input: ReplyInput): ClassifiedReply | null {
   const address = extractEmailAddress(input.from);
-  if (isBounce(input, address)) {
-    return {
-      classification: "bounce",
-      confidence: 1,
-      suggested_action: SUGGESTED_ACTIONS.bounce,
-      source: "rule",
-    };
-  }
   const subject = input.subject ?? "";
+  const text = input.text ?? "";
+  if (isBounce(input, address)) {
+    const report = `${subject}\n${text}`;
+    if (DSN_SOFT.test(report)) return rule("auto_reply", SUGGESTED_ACTIONS.delayed);
+    if (DSN_BLOCKED.test(report)) return rule("auto_reply", SUGGESTED_ACTIONS.blocked);
+    return rule("bounce", SUGGESTED_ACTIONS.bounce);
+  }
   if (
     hasAutoHeaders(input.autoHeaders) ||
     AUTO_SUBJECTS_ANYWHERE.test(subject) ||
     AUTO_SUBJECTS_PREFIX.test(subject)
   ) {
-    return {
-      classification: "auto_reply",
-      confidence: 1,
-      suggested_action: SUGGESTED_ACTIONS.auto_reply,
-      source: "rule",
-    };
+    if (LEFT_COMPANY.test(text)) return rule("bounce", SUGGESTED_ACTIONS.left_company);
+    if (AUTOMATED_REJECTION.test(text)) return rule("rejection", SUGGESTED_ACTIONS.rejection);
+    return rule("auto_reply", SUGGESTED_ACTIONS.auto_reply);
   }
+  if (OPT_OUT_RE.test(text)) return rule("rejection", SUGGESTED_ACTIONS.opt_out);
   return null;
 }
 

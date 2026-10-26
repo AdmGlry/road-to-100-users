@@ -1,7 +1,7 @@
 {
-  "from": "Thomas Bernard <t.bernard@datalyse.io>",
+  "from": "Thomas Bernard <t.bernard@datalyse.example>",
   "subject": "RE: Candidature spontanée – stage data",
   "autoHeaders": {},
-  "text": "Bonjour,\n\nJe vous appelle demain matin vers 9h30 pour en discuter, si cela vous convient. Sinon dites-moi quand vous êtes joignable.\n\nThomas\n-- \nThomas Bernard | CTO Datalyse\n06 12 34 56 78\n\nDe : Léa Martin <lea.martin@gmail.com>\nEnvoyé : lundi 26 octobre 2026 10:05\nÀ : Thomas Bernard\nObjet : Candidature spontanée – stage data",
+  "text": "Bonjour,\n\nJe vous appelle demain matin vers 9h30 pour en discuter, si cela vous convient. Sinon dites-moi quand vous êtes joignable.\n\nThomas\n-- \nThomas Bernard | CTO Datalyse\n06 12 34 56 78\n\nDe : Léa Martin <lea.martin@example.com>\nEnvoyé : lundi 26 octobre 2026 10:05\nÀ : Thomas Bernard\nObjet : Candidature spontanée – stage data",
   "expected": "interview"
 }

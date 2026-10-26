@@ -30,7 +30,7 @@ function setup(interviewNotifiedAt: string | null = null) {
   >(async () => ({ id: "m-notif", threadId: "t-notif" }));
   const getValidAccessToken = vi.fn(async () => ({
     accessToken: "ya29.test",
-    email: "lea.martin@gmail.com",
+    email: "lea.martin@example.com",
   }));
   const deps = {
     sendRawMessage,
@@ -60,8 +60,8 @@ describe("notifyInterview", () => {
     expect(await notifyInterview(db.client, input, deps)).toBe("sent");
     expect(sendRawMessage).toHaveBeenCalledTimes(1);
     const mime = decode(sendRawMessage.mock.calls[0][1]);
-    expect(mime).toMatch(/^To: lea\.martin@gmail\.com$/m);
-    expect(mime).toMatch(/<lea\.martin@gmail\.com>/);
+    expect(mime).toMatch(/^To: lea\.martin@example\.com$/m);
+    expect(mime).toMatch(/<lea\.martin@example\.com>/);
     expect(mime).not.toMatch(/application\/pdf/);
     expect(db.table("applications")[0].interview_notified_at).toBe(NOW.toISOString());
     expect(db.table("send_log")).toHaveLength(0);

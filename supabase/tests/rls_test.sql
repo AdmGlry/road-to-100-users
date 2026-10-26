@@ -433,6 +433,8 @@ declare
   used int;
   slot uuid;
 begin
+  -- Seed sends are 1 h old (outside the 30 s spacing window, inside the 24 h quota).
+  update public.send_log set sent_at = now() - interval '1 hour' where user_id = b;
   select count(*) into used from public.send_log
    where user_id = b and sent_at > now() - interval '24 hours';
   slot := public.reserve_send_slot(b, null, used + 1);
@@ -444,6 +446,18 @@ begin
   end if;
   -- Releasing the slot (failed send) frees the quota again.
   delete from public.send_log where id = slot;
+  -- Spacing: a second send less than 30 s after the previous one is refused.
+  delete from public.send_log where user_id = b and sent_at > now() - interval '1 minute';
+  if public.reserve_send_slot(b, null, used + 5) is null then
+    raise exception 'FAIL: reserve_send_slot refused a slot under the limit';
+  end if;
+  begin
+    perform public.reserve_send_slot(b, null, used + 5);
+    raise exception 'FAIL: two sends less than 30 s apart';
+  exception when raise_exception then
+    if sqlerrm <> 'send_too_soon' then raise; end if;
+  end;
+  delete from public.send_log where user_id = b and sent_at > now() - interval '1 minute';
   if public.reserve_send_slot(b, null, used + 1) is null then
     raise exception 'FAIL: released slot not available again';
   end if;
@@ -532,6 +546,11 @@ begin
   begin
     update public.applications set gmail_thread_id = 'x' where id = app_b;
     raise exception 'FAIL: client set gmail_thread_id';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.applications set followup_status = 'draft', followup_body = 'x' where id = app_b;
+    raise exception 'FAIL: client wrote a follow-up';
   exception when insufficient_privilege then null;
   end;
   begin

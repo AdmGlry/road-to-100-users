@@ -104,6 +104,7 @@ function getProvider(): LlmProvider {
         cachedProvider = createOpenRouterProvider({
           apiKey: env.LLM_API_KEY,
           appUrl: process.env.APP_URL,
+          denyDataCollection: process.env.LLM_DENY_DATA_COLLECTION === "true",
         });
         break;
       default:

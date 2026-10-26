@@ -186,7 +186,7 @@ describe("runPreparation", () => {
       status: "draft",
       company_insight_source: null,
       claims_unverified: [],
-      prompt_version: "compose_application@1",
+      prompt_version: "compose_application@2",
     });
     expect(String(shared.applications[0].company_insight)).toContain("ACME CONSEIL exerce");
     expect(leadRow(shared, lead(1))).toMatchObject({ status: "drafted", prep_status: "done" });

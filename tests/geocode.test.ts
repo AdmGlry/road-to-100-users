@@ -5,6 +5,7 @@ import {
   extractPostcode,
   geocodeCity,
   GEOCODE_URLS,
+  isPlausibleMatch,
 } from "@/lib/integrations/geocode";
 
 import { readCompaniesFixture } from "./fixtures/companies";
@@ -51,6 +52,30 @@ describe("geocodeCity", () => {
     });
     expect(await geocodeCity("Nantes", { fetch: throwing as unknown as typeof fetch })).toBeNull();
     expect(await geocodeCity(" ", { fetch: throwing as unknown as typeof fetch })).toBeNull();
+  });
+});
+
+describe("isPlausibleMatch", () => {
+  it("keeps the typed commune, rejects a far-fetched best guess", () => {
+    expect(isPlausibleMatch("Nantes", "Nantes", 0.3)).toBe(true);
+    expect(isPlausibleMatch("saint herblain", "Saint-Herblain", 0.4)).toBe(true);
+    expect(isPlausibleMatch("Les Sables", "Les Sables-d'Olonne", 0.5)).toBe(true);
+    expect(isPlausibleMatch("France", "Le Lamentin", 0.35)).toBe(false);
+    expect(isPlausibleMatch("Nantse", "Nantes", 0.85)).toBe(true);
+  });
+
+  it("geocodeCity returns null for a country instead of a random commune", async () => {
+    const fetchMock = vi.fn(async () =>
+      json({
+        features: [
+          {
+            geometry: { coordinates: [-60.99, 14.61] },
+            properties: { city: "Le Lamentin", name: "Le Lamentin", postcode: "97232", score: 0.3 },
+          },
+        ],
+      }),
+    );
+    expect(await geocodeCity("France", { fetch: fetchMock as unknown as typeof fetch })).toBeNull();
   });
 });
 

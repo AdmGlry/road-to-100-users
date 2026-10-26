@@ -88,7 +88,7 @@ const words = (n: number) => Array.from({ length: n }, () => "mot").join(" ");
 describe("checkMail / analyzeMail", () => {
   const good = {
     subject: "Alternance Business Analyst – sept. 2027 – ACME",
-    body: `Bonjour,\n\n${words(140)} 15 minutes septembre 2027 06 12 34 56 78`,
+    body: `Bonjour,\n\n${words(100)} 15 minutes septembre 2027 06 12 34 56 78`,
     claims_used: ["Master MSI", "SQL"],
   };
 

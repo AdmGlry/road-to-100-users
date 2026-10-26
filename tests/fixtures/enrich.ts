@@ -54,7 +54,7 @@ export const filler = (n: number) => Array.from({ length: n }, () => "mot").join
 export function goodMail(extra = "") {
   return {
     subject: "Alternance Business Analyst – sept. 2027 – ACME",
-    body: `Bonjour,\n\n${filler(130)} ${extra}\n\nCamille Durand\nMaster MSI, IAE Nantes\n06 12 34 56 78`,
+    body: `Bonjour,\n\n${filler(95)} ${extra}\n\nCamille Durand\nMaster MSI, IAE Nantes\n06 12 34 56 78`,
     claims_used: ["Stage assistante MOA chez Banque Populaire", "SQL"],
   };
 }

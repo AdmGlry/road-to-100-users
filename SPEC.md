@@ -352,7 +352,7 @@ Accroche vérifiée : {accroche + source} ou "aucune"
 Type de contrat recherché : {alternance/stage}, rythme : {rythme}, début : {date}
 
 Règles :
-- 120 à 180 mots. Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
+- 90 à 130 mots (réduit de 120–180 le 2026-10-26 après le premier test réel : trop long sur téléphone). Ton professionnel, direct, sans formules creuses ("dynamique", "motivé", "rigoureux" interdits sans preuve).
 - Structure : 1) accroche liée à l'entreprise ; 2) qui je suis et ce que je cherche (contrat, rythme, date) ; 3) deux preuves concrètes tirées du profil, liées à l'activité de l'entreprise ; 4) appel à l'action simple (échange de 15 minutes).
 - N'invente AUCUNE expérience, compétence, diplôme ou chiffre absent du profil.
 - N'utilise l'accroche que si elle est fournie ; sinon, parle de l'activité de l'entreprise.
@@ -376,7 +376,7 @@ Réponds en JSON : { "subject": string, "body": string, "claims_used": string[] 
 ### Critères d'acceptation
 
 - [ ] Une recherche « Business Analyst, alternance, Nantes, 30 km » renvoie au moins 20 entreprises pertinentes notées.
-- [ ] Chaque mail généré fait 120 à 180 mots et ne contient aucune affirmation absente du profil (test sur 10 générations).
+- [ ] Chaque mail généré fait 90 à 130 mots et ne contient aucune affirmation absente du profil (test sur 10 générations).
 - [ ] Le quota de 20 envois par 24 h est appliqué côté serveur (test unitaire + test d'intégration).
 - [ ] Un mail envoyé apparaît dans « Messages envoyés » du Gmail de l'utilisateur, avec le CV joint.
 - [ ] Une entreprise déjà contactée n'est plus proposée.
@@ -445,7 +445,7 @@ Règles de mise à jour :
 
 ---
 
-## 10. Module Coach (V2, sprint 6)
+## 10. Module Coach (V2, sprint 9)
 
 - Point de départ : une candidature au statut `interview` ou une offre collée à la main.
 - Le LLM prépare 8 questions : 3 générales (parcours, motivation), 3 liées au poste, 2 liées à l'entreprise (à partir de `company_insight` et de la recherche web).
@@ -494,15 +494,20 @@ APP_URL=
 
 Sprints d'une semaine. Chaque sprint se termine par une démo testable en ligne (déploiement Vercel de prévisualisation).
 
-| Sprint | Objectif                             | Livrable démontrable                                                  |
-| ------ | ------------------------------------ | --------------------------------------------------------------------- |
-| 0      | Fondations                           | App déployée, connexion Google, base Supabase avec migrations et RLS  |
-| 1      | Profil                               | Upload du CV → profil pré-rempli, éditable, préférences sauvegardées  |
-| 2      | Chasseur : recherche et scoring      | Liste de 30 entreprises notées, sélectionnables                       |
-| 3      | Chasseur : contact, rédaction, envoi | Connexion Gmail + mails relus et envoyés avec CV joint                |
-| 4      | Suivi                                | Kanban mis à jour automatiquement, relances, notification d'entretien |
-| 5      | Bêta                                 | Onboarding, landing, RGPD, statistiques, admin, 10 testeurs           |
-| 6      | Coach (V2)                           | Simulation vocale dans le navigateur + débrief                        |
+| Sprint | Objectif                             | Livrable démontrable                                                    |
+| ------ | ------------------------------------ | ----------------------------------------------------------------------- |
+| 0      | Fondations                           | App déployée, connexion Google, base Supabase avec migrations et RLS    |
+| 1      | Profil                               | Upload du CV → profil pré-rempli, éditable, préférences sauvegardées    |
+| 2      | Chasseur : recherche et scoring      | Liste de 30 entreprises notées, sélectionnables                         |
+| 3      | Chasseur : contact, rédaction, envoi | Connexion Gmail + mails relus et envoyés avec CV joint                  |
+| 4      | Suivi                                | Kanban mis à jour automatiquement, relances, notification d'entretien   |
+| 5      | Fondations réelles + bêta minimale   | Envoi réel validé, IA rapide sans conservation, adresses trouvées, RGPD |
+| 6      | Pilote automatique + Radar           | 5 candidatures prêtes chaque matin, validées d'un geste sur téléphone   |
+| 7      | Réponds en un geste                  | Réponse au recruteur (créneau, documents) préparée, validée d'un geste  |
+| 8      | Bêta testeurs + mémoires             | 10 testeurs, taux d'entretiens mesuré, apprentissage de ce qui marche   |
+| 9      | Coach (V2)                           | Simulation vocale dans le navigateur + débrief                          |
+
+Feuille de route décidée le 2026-10-26 avec le propriétaire (analyse concurrence : LazyApply, Simplify, Jobea, Kandi, JobKraken). Positionnement : **le marché caché + l'IA qui s'occupe de tout jusqu'à l'entretien, avec validation d'un geste** — jamais de robot sur les job boards (interdit par leurs conditions, risque pour les comptes des étudiants, incompatible avec les partenariats écoles). Les avantages difficiles à copier à construire : les résultats mesurés (quelle candidature mène à un entretien), la mémoire des formats d'adresse par domaine, les partenariats écoles.
 
 ### Sprint 0 — Fondations
 
@@ -545,21 +550,56 @@ Sprints d'une semaine. Chaque sprint se termine par une démo testable en ligne 
 - Workflow GitHub Actions (§9).
 - **Fini quand** : critères d'acceptation du §8 validés.
 
-### Sprint 5 — Bêta
+### Sprint 5 — Fondations réelles + bêta minimale
 
-- Onboarding guidé en 3 étapes (CV → préférences → Gmail).
-- Landing page : promesse, fonctionnement en 3 étapes, inscription en liste d'attente / accès bêta.
-- Pages Politique de confidentialité et Conditions d'utilisation, export et suppression du compte.
-- Rappel de reconnexion Gmail (mode test Google, §6.3).
-- Page admin + suivi des événements (§4 `events`).
-- Corrections issues des tests avec 10 utilisateurs.
-- **Fini quand** : 10 testeurs ont envoyé au moins 5 candidatures chacun sans aide.
+Rien de nouveau tant que le socle n'est pas prouvé en ligne.
 
-### Sprint 6 — Coach (V2)
+- Test réel des Sprints 3–4 avec le Gmail du propriétaire (envoi, CV joint, réponse classée, relance dans le même fil) ; corrections.
+- IA payante rapide sans conservation des données (`LLM_DENY_DATA_COLLECTION=true`, modèles choisis pour la vitesse) ; objectif : une préparation de mail < 10 s.
+- Recherche automatique du site et des adresses : essai comparé sur 20 entreprises réelles (recherche web payante vs context.dev) ; on garde la source qui donne une adresse utile pour ≥ 70 % des entreprises, derrière une variable d'environnement (`lib/integrations/`).
+- RGPD minimum : politique de confidentialité et conditions d'utilisation (IA, sous-traitants, recruteurs, durée de conservation), export JSON, suppression de compte (révocation Google + CV + toutes les lignes), purge des données après 12 mois d'inactivité.
+- Onboarding guidé en 3 étapes (CV → préférences → Gmail), rappel de reconnexion Gmail (mode test Google, §6.3).
+- **Fini quand** : un mail réel est parti avec CV joint et sa réponse a déplacé la carte ; préparation d'un mail < 10 s ; adresse trouvée pour ≥ 70 % des entreprises de la recherche de référence ; export et suppression de compte testés.
+
+### Sprint 6 — Pilote automatique + Radar
+
+La promesse : « Chaque matin, 5 candidatures sont prêtes ; tu valides d'un geste en 30 secondes ; Spontané envoie, relance et te prévient quand tu as un entretien. »
+
+- Préparation de nuit (cron) : pour chaque étudiant qui l'a activée, nouvelles entreprises de sa recherche enregistrée → contacts → mails, dans la limite de son quota et d'un nombre choisi par jour (5 par défaut).
+- Radar : priorité aux entreprises qui montrent un signal public de recrutement ou de croissance — offre d'alternance récente (API La Bonne Alternance, conditions d'usage à respecter), nouvel établissement ou effectif en hausse (API Recherche d'entreprises), actualité (recherche web) — avec l'accroche datée correspondante dans le mail.
+- Écran de validation mobile façon cartes : glisser à droite = envoyer (c'est la validation explicite de l'étudiant), à gauche = passer, toucher = lire/modifier. Les relances proposées passent par le même écran.
+- Application installable (PWA) + notifications sur le téléphone : « 5 candidatures prêtes », « Entretien proposé par X ».
+- Aucun envoi sans le geste de validation ; quota 20 / 24 h et espacement inchangés.
+- **Fini quand** : sur 5 jours consécutifs, un étudiant test reçoit chaque matin une notification avec 5 candidatures prêtes dont ≥ 4 envoyables sans modification, et les valide en moins d'une minute sur téléphone.
+
+### Sprint 7 — Réponds en un geste
+
+L'IA accompagne jusqu'à l'entretien, pas seulement jusqu'à l'envoi.
+
+- Réponse « entretien » : détection des créneaux proposés dans la réponse du recruteur, brouillon de réponse (« Jeudi 14 h me convient… »), notification « On répond jeudi 14 h ? » ; un geste = envoi dans le même fil ; fichier calendrier (.ics) proposé, sans accès à l'agenda Google.
+- Réponse « demande d'informations » : brouillon prêt, l'étudiant joint le document demandé.
+- Même règles que les relances : validation explicite, quota, jamais d'invention (aucune disponibilité ou information absente de ce que l'étudiant a indiqué).
+- **Fini quand** : une réponse d'entretien de test produit un brouillon correct avec le bon créneau, envoyé dans le même fil après un geste, et l'événement est ajoutable à l'agenda.
+
+### Sprint 8 — Bêta testeurs + mémoires
+
+- 10 testeurs (IAE Nantes) pendant 2 semaines ; corrections issues de leurs retours.
+- Page admin minimale + statistiques (§4 `events`) : envoyés, réponses, entretiens, rebonds, par étudiant et global.
+- Mémoire « ce qui marche » : à partir des résultats suivis (réponse, entretien), statistiques agrégées et anonymes sur les mails (longueur, type d'accroche, taille d'entreprise, jour d'envoi) pour améliorer les prompts et conseiller l'étudiant. Aucune donnée personnelle partagée entre étudiants.
+- Mémoire des formats d'adresse par domaine (ex. `prenom.nom`) apprise des envois réussis et des rebonds, partagée entre étudiants **sous forme de format uniquement**, jamais d'adresse ni de nom ; validation par l'agent `gdpr-reviewer` avant mise en production.
+- **Fini quand** : 10 testeurs ont envoyé au moins 5 candidatures chacun sans aide ; le taux d'entretiens est mesuré et affiché dans l'admin.
+
+### Sprint 9 — Coach (V2)
 
 - §10 complet, version navigateur.
 - Lien depuis une carte « Entretien » du Kanban.
 - **Fini quand** : une simulation de 8 questions se déroule entièrement à la voix et produit un débrief sauvegardé.
+
+### Plus tard (après preuves en bêta)
+
+- **Copilote Chrome** (façon Simplify) : sur une offre ouverte par l'étudiant lui-même (Indeed, Welcome to the Jungle, sites carrières), un bouton remplit le formulaire, génère la lettre et ajoute la candidature au Suivi ; c'est l'étudiant qui clique sur « Envoyer ». LinkedIn exclu. Aucune navigation ni candidature automatique par robot.
+- **Réseau des anciens** : avec une école partenaire et le consentement explicite des anciens, « 2 anciens de l'IAE travaillent chez Acme » + mail de mise en relation validé par l'étudiant.
+- Offres publiées utilisées comme **signal** (badge « Recrute en alternance », accroche), pas comme catalogue d'annonces.
 
 ---
 
@@ -593,11 +633,23 @@ Donne-les **un par un**, dans l'ordre. Attends que chaque sprint soit terminé, 
 
 **Sprint 5**
 
-> Implémente le Sprint 5 (Bêta, §13). Rédige les pages RGPD en français clair, adaptées à ce que l'app fait réellement. Ajoute la page admin. Donne-moi ensuite une checklist de lancement pour 10 testeurs (ce que je dois leur envoyer, ce que je dois surveiller).
+> Implémente le Sprint 5 (Fondations réelles + bêta minimale, §13). Commence par me guider pour le test réel Gmail et diagnostique via les logs ; puis IA rapide sans conservation, essai comparé de la recherche de contacts sur 20 entreprises, pages RGPD en français clair adaptées à ce que l'app fait réellement, export et suppression de compte, onboarding.
 
 **Sprint 6**
 
-> Implémente le Sprint 6 (Coach, §10) en version navigateur. Préviens-moi des limites de compatibilité navigateur et propose un message à afficher aux utilisateurs concernés.
+> Implémente le Sprint 6 (Pilote automatique + Radar, §13). Aucun envoi sans le geste de validation. Explique-moi comment installer l'app sur mon téléphone et activer les notifications.
+
+**Sprint 7**
+
+> Implémente le Sprint 7 (Réponds en un geste, §13). Teste avec des réponses d'entretien fictives contenant différents formats de créneaux.
+
+**Sprint 8**
+
+> Implémente le Sprint 8 (Bêta testeurs + mémoires, §13). Fais valider les mémoires partagées par l'agent `gdpr-reviewer`. Donne-moi une checklist de lancement pour 10 testeurs (ce que je dois leur envoyer, ce que je dois surveiller).
+
+**Sprint 9**
+
+> Implémente le Sprint 9 (Coach, §10) en version navigateur. Préviens-moi des limites de compatibilité navigateur et propose un message à afficher aux utilisateurs concernés.
 
 **Quand quelque chose ne marche pas**
 
@@ -629,5 +681,8 @@ _(mis à jour par l'agent à la fin de chaque sprint)_
 - [x] Sprint 2 — Chasseur : recherche et scoring (2026-10-25) : API Recherche d'entreprises (near_point + search, limiteur 5 req/s), géocodage, `map_naf@1`, pré-filtre déterministe (60), `score_fit@2` par lots de 10, 30 meilleures en leads, écran avec progression, filtres, sélection ; plafond de 10 recherches / 24 h par étudiant. Test réel « Business Analyst, alternance, Nantes, 30 km » : 150 entreprises trouvées, 60 pré-sélectionnées, notation IA OK. ⚠️ Avec les modèles gratuits OpenRouter, une recherche prend 1 à 3 min (critère « < 60 s » atteignable seulement avec un modèle payant rapide).
 - [x] Sprint 3 — Chasseur : contact, rédaction, envoi (2026-10-25) : OAuth Gmail (state signé + nonce, tokens chiffrés, expiration → bannière), écran de consentement expliqué dans Paramètres, site/contacts (site officiel, adresses du site, formats probables si MX, génériques), accroche vérifiée (URL issue des résultats, sinon activité), `compose_application@1` + contrôle automatique des `claims_used`/longueur/objet/mots creux avec 1 régénération puis signalement, écran de relecture (modifier, régénérer, changer de contact, ignorer, valider), confirmation finale, file espacée 30–90 s, quota 20/24 h atomique. ⚠️ À valider en ligne avec un vrai compte Gmail de test (critères §7 « mail dans Messages envoyés avec CV joint »).
 - [x] Sprint 4 — Suivi (2026-10-26) : synchronisation horaire des seuls fils de l'app, classification (règles + `classify_reply@1`, 11 exemples dans `tests/fixtures/replies/`), statuts automatiques sans écraser une correction manuelle, notification d'entretien (mail à soi-même, une seule fois), relances `compose_followup@1` en brouillon à J+7 envoyées dans le même fil après validation, `no_reply` à J+21, tableau Kanban (onglets sur mobile, 5 colonnes sur PC), détail, « Synchroniser maintenant », statistiques. Crons idempotents (testés). ⚠️ À valider en ligne avec un vrai compte Gmail (réponse reçue → carte déplacée en moins d'une heure, relance dans le même fil).
-- [ ] Sprint 5
-- [ ] Sprint 6
+- [ ] Sprint 5 — Fondations réelles + bêta minimale
+- [ ] Sprint 6 — Pilote automatique + Radar
+- [ ] Sprint 7 — Réponds en un geste
+- [ ] Sprint 8 — Bêta testeurs + mémoires
+- [ ] Sprint 9 — Coach (V2)

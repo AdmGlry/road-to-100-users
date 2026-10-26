@@ -62,11 +62,11 @@ describe("countWords / bodyLengthState", () => {
     expect(countWords("")).toBe(0);
     expect(countWords("l'alternance 2027")).toBe(2);
   });
-  it("classifies the length against 120–180", () => {
-    expect(bodyLengthState(119)).toBe("short");
-    expect(bodyLengthState(120)).toBe("ok");
-    expect(bodyLengthState(180)).toBe("ok");
-    expect(bodyLengthState(181)).toBe("long");
+  it("classifies the length against 90–130", () => {
+    expect(bodyLengthState(89)).toBe("short");
+    expect(bodyLengthState(90)).toBe("ok");
+    expect(bodyLengthState(130)).toBe("ok");
+    expect(bodyLengthState(131)).toBe("long");
   });
 });
 

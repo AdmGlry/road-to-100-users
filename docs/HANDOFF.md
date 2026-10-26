@@ -49,9 +49,14 @@ En production depuis le 2026-10-26 (PR #8, squash ; migration `sprint4_tracker` 
 
 Laissé pour plus tard (noté par les relecteurs) : mémoriser les adresses ayant rebondi au lieu de les supprimer + baisser la confiance des autres adresses devinées ; compteur de rebonds et alerte ; confiance des adresses dans la confirmation d'envoi ; contrôle « n'invente rien » automatique sur les relances ; nouvelle tentative d'une notification d'entretien échouée ; en-tête de la fenêtre de détail un peu haut sur mobile ; purge / durée de conservation des réponses (Sprint 5).
 
-## Prochaine étape : Sprint 5 (SPEC §13)
+## Prochaine étape : Sprint 5 (feuille de route SPEC §13, décidée le 2026-10-26)
 
-1. Avant : test réel des Sprints 3 et 4 avec un compte Gmail de test (connexion, envoi, réponse, relance dans le même fil).
-2. RGPD avant de vrais étudiants : modèle payant sans conservation ou `LLM_DENY_DATA_COLLECTION=true`, politique de confidentialité (IA, sous-traitants, recruteurs), export JSON + suppression de compte (révocation Google + CV), durée de conservation, information des recruteurs (à valider par un juriste).
-3. Construire : onboarding en 3 étapes, rappel de reconnexion Gmail (mode test, 7 jours), page admin, statistiques.
-4. Recherche web : désactivée (`WEBSEARCH_PROVIDER` absent = `none`). Pour l'activer : crédits OpenRouter (`openrouter`) ou clé Brave Search (`brave` + `BRAVE_SEARCH_API_KEY`).
+Ordre : Sprint 5 Fondations réelles + bêta minimale → 6 Pilote automatique + Radar → 7 Réponds en un geste → 8 Bêta testeurs + mémoires → 9 Coach. Positionnement : marché caché + l'IA s'occupe de tout jusqu'à l'entretien, validation d'un geste ; jamais de robot sur les job boards.
+
+Sprint 5, en attente du propriétaire :
+
+1. Test réel Gmail des Sprints 3–4 (connexion dans Paramètres, 1 candidature vers son adresse, réponse « entretien », synchronisation).
+2. Crédit OpenRouter pour un modèle payant rapide + `LLM_DENY_DATA_COLLECTION=true` dans Vercel (saisis par le propriétaire).
+3. Compte context.dev gratuit (clé saisie dans Vercel par le propriétaire) pour l'essai comparé de recherche de contacts.
+
+Recherche web : désactivée (`WEBSEARCH_PROVIDER` absent = `none`). Pour l'activer : crédits OpenRouter (`openrouter`) ou clé Brave Search (`brave` + `BRAVE_SEARCH_API_KEY`).

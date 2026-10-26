@@ -242,6 +242,13 @@ describe("moveCard", () => {
     ]);
   });
 
+  it("dismisses a pending follow-up draft when the card leaves Envoyé", async () => {
+    const row = fake.table("applications").find((a) => a.id === "a-sent")!;
+    row.followup_status = "draft";
+    await moveCard(fake.client, ME, "a-sent", "rejected");
+    expect(row.followup_status).toBe("dismissed");
+  });
+
   it("lets a bounced card move back to Envoyé", async () => {
     await moveCard(fake.client, ME, "a-bounced", "sent");
     expect(fake.table("applications").find((a) => a.id === "a-bounced")?.status).toBe("sent");
@@ -291,6 +298,8 @@ describe("reviseBounced", () => {
     });
     expect(fake.table("leads").find((l) => l.id === "lead-1")?.status).toBe("drafted");
     expect(fake.table("replies").some((r) => r.application_id === "a-bounced")).toBe(true);
+    // The address that bounced is never offered again.
+    expect(fake.table("contacts").some((c) => c.id === "contact-1")).toBe(false);
   });
 
   it("only applies to the user's bounced mails", async () => {

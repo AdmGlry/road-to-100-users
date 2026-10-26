@@ -315,16 +315,16 @@ async function loadOwned(
   admin: SupabaseClient,
   userId: string,
   applicationId: string,
-): Promise<{ id: string; lead_id: string; status: string }> {
+): Promise<{ id: string; lead_id: string; contact_id: string | null; status: string }> {
   const { data, error } = await admin
     .from("applications")
-    .select("id, lead_id, status")
+    .select("id, lead_id, contact_id, status")
     .eq("id", applicationId)
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw dbError("applications select (owned)", error);
   if (!data) throw new TrackerError("not_found");
-  return data as { id: string; lead_id: string; status: string };
+  return data as { id: string; lead_id: string; contact_id: string | null; status: string };
 }
 
 /**
@@ -356,6 +356,16 @@ export async function moveCard(
   if ((data ?? []).length === 0) {
     // Changed in between (sync or another tab): the student reloads.
     throw new TrackerError("not_allowed");
+  }
+  if (to !== "sent") {
+    // Out of "Envoyé": a follow-up draft no longer makes sense.
+    const { error: fuError } = await admin
+      .from("applications")
+      .update({ followup_status: "dismissed", followup_approved_at: null })
+      .eq("id", applicationId)
+      .eq("user_id", userId)
+      .eq("followup_status", "draft");
+    if (fuError) throw dbError("applications update (dismiss follow-up)", fuError);
   }
   await logEvent(admin, userId, "card_moved", { from, to });
   return { changed: true, status: to };
@@ -409,5 +419,14 @@ export async function reviseBounced(
     .eq("id", row.lead_id)
     .eq("user_id", userId);
   if (leadError) throw dbError("leads update (revise)", leadError);
+  if (row.contact_id) {
+    // The address does not exist: never offer it again.
+    const { error: contactError } = await admin
+      .from("contacts")
+      .delete()
+      .eq("id", row.contact_id)
+      .eq("user_id", userId);
+    if (contactError) throw dbError("contacts delete (revise)", contactError);
+  }
   await logEvent(admin, userId, "bounced_revised", {});
 }

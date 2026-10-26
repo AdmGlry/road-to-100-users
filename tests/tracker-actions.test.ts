@@ -173,7 +173,11 @@ describe("delegation", () => {
   it("returns the message of a FollowupError and never logs contents", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(followups.sendFollowup).mockRejectedValue(
-      new followups.FollowupError("already_sent", "Cette relance a déjà été envoyée."),
+      // The module mock above gives FollowupError a (code, message) constructor.
+      new (followups.FollowupError as unknown as new (code: string, message: string) => Error)(
+        "not_sendable",
+        "Cette relance a déjà été envoyée.",
+      ),
     );
     expect(await sendFollowupAction(ID)).toEqual({
       ok: false,

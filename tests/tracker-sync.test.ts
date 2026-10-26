@@ -251,7 +251,16 @@ describe("syncReplies", () => {
     await run();
     expect(db.table("applications")[0].status).toBe("bounced");
     expect(db.table("replies")[0]).toMatchObject({ classification: "bounce" });
+    // Not an answer from a person: the re-sent mail keeps its follow-up rules.
+    expect(db.table("applications")[0].last_reply_at ?? null).toBeNull();
     expect(deps.notifyInterview).not.toHaveBeenCalled();
+  });
+
+  it("records each attempt so the next run starts with other students and threads", async () => {
+    const { db, run } = setup({});
+    await run();
+    expect(db.table("google_connections")[0].sync_attempted_at).toBeTruthy();
+    expect(db.table("applications")[0].replies_checked_at).toBeTruthy();
   });
 
   it("notifies an interview once, with the company name", async () => {

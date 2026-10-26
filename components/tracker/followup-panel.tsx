@@ -200,7 +200,7 @@ export function FollowupPanel({
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={7}
-          maxLength={2000}
+          maxLength={3000}
           aria-describedby={`${uid}-words`}
           disabled={busy || confirm !== null}
         />

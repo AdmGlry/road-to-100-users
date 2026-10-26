@@ -403,6 +403,8 @@ export async function reviseBounced(
       followup_sent_at: null,
       followup_error: null,
       followup_count: 0,
+      last_reply_at: null,
+      interview_notified_at: null,
       status_set_manually: false,
       send_error: BOUNCED_REVISE_ERROR,
     })

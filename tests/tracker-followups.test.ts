@@ -264,6 +264,19 @@ describe("generateFollowups — selection", () => {
     expect(appRow(APP2).followup_status).toBe("draft");
   });
 
+  it("a failing row goes to the back of the line on the next run", async () => {
+    const { generate, appRow, prompts } = setup(
+      [app({ id: APP, sent_at: ago(9 * DAY) }), app({ id: APP2 })],
+      {},
+      [new Error("request failed"), { body: words(60) }],
+    );
+    await generate({ limit: 1 });
+    expect(appRow(APP).followup_checked_at).toBeTruthy();
+    await generate({ limit: 1 });
+    expect(prompts).toHaveLength(2);
+    expect(appRow(APP2).followup_status).toBe("draft");
+  });
+
   it("limit bounds the run", async () => {
     const { generate, prompts } = setup([app({ id: APP }), app({ id: APP2 })], {}, [
       { body: words(60) },

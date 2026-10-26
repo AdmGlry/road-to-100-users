@@ -37,7 +37,7 @@ const MANUAL_SYNC_DEADLINE_MS = 25_000;
 const MANUAL_SYNC_EVENT = "manual_sync";
 /** Hard limits on a follow-up the student edits (the 50–80 words rule is shown in the UI). */
 const FOLLOWUP_SUBJECT_MAX = 120;
-const FOLLOWUP_BODY_MAX = 2000;
+const FOLLOWUP_BODY_MAX = 3000;
 
 const SESSION_EXPIRED = "Ta session a expiré. Reconnecte-toi puis réessaie.";
 const GENERIC_ERROR = "Une erreur est survenue. Réessaie dans un instant.";

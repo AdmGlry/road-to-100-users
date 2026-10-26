@@ -111,7 +111,7 @@ describe("session and validation", () => {
     expect((await reviseBouncedAction("x")).ok).toBe(false);
     expect((await sendFollowupAction("x")).ok).toBe(false);
     expect((await updateFollowupAction(ID, { subject: "Re", body: "   " })).ok).toBe(false);
-    expect((await updateFollowupAction(ID, { body: "x".repeat(2001) })).ok).toBe(false);
+    expect((await updateFollowupAction(ID, { body: "x".repeat(3001) })).ok).toBe(false);
     expect(board.moveCard).not.toHaveBeenCalled();
     expect(board.reviseBounced).not.toHaveBeenCalled();
     expect(followups.updateFollowup).not.toHaveBeenCalled();

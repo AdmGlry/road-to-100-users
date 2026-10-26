@@ -24,7 +24,14 @@ alter table public.applications
   add column if not exists followup_sent_at      timestamptz,
   add column if not exists followup_error        text,
   add column if not exists interview_notified_at timestamptz,
-  add column if not exists status_set_manually   bool not null default false;
+  add column if not exists status_set_manually   bool not null default false,
+  add column if not exists replies_checked_at    timestamptz,
+  add column if not exists followup_checked_at   timestamptz;
+
+-- Fair rotation of the crons: least recently checked first, so a big or
+-- failing account never starves the others.
+alter table public.google_connections
+  add column if not exists sync_attempted_at timestamptz;
 
 do $$
 begin

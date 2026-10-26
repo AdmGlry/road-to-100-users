@@ -294,6 +294,8 @@ describe("reviseBounced", () => {
       next_followup_at: null,
       followup_status: null,
       followup_count: 0,
+      last_reply_at: null,
+      interview_notified_at: null,
       send_error: BOUNCED_REVISE_ERROR,
     });
     expect(fake.table("leads").find((l) => l.id === "lead-1")?.status).toBe("drafted");

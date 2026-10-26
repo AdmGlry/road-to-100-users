@@ -337,6 +337,15 @@ export async function generateFollowups(
 
   await recoverStaleClaims(admin, now());
 
+  // Only students whose Gmail connection is active (the draft must be sendable).
+  const { data: conns, error: connError } = await admin
+    .from("google_connections")
+    .select("user_id")
+    .eq("status", "active");
+  if (connError) throw new Error(`google_connections select failed (${connError.code ?? ""})`);
+  const activeIds = ((conns ?? []) as { user_id: string }[]).map((c) => c.user_id);
+  if (activeIds.length === 0 || limit === 0) return counts;
+
   const cutoff = new Date(now().getTime() - FOLLOWUP_AFTER_DAYS * DAY_MS).toISOString();
   const { data, error } = await admin
     .from("applications")
@@ -348,25 +357,12 @@ export async function generateFollowups(
     .eq("status_set_manually", false)
     .not("gmail_thread_id", "is", null)
     .lte("sent_at", cutoff)
-    .order("sent_at", { ascending: true })
-    .limit(200);
+    .in("user_id", activeIds)
+    // Never tried first, then least recently tried: failing rows never starve the others.
+    .order("followup_checked_at", { ascending: true, nullsFirst: true })
+    .limit(limit);
   if (error) throw new Error(`followup candidates select failed (${error.code ?? "unknown"})`);
-  const rows = (data ?? []) as CandidateRow[];
-  if (rows.length === 0 || limit === 0) return counts;
-
-  // Only students whose Gmail connection is active (the draft must be sendable).
-  const userIds = [...new Set(rows.map((r) => r.user_id))];
-  const { data: conns, error: connError } = await admin
-    .from("google_connections")
-    .select("user_id, status")
-    .in("user_id", userIds);
-  if (connError) throw new Error(`google_connections select failed (${connError.code ?? ""})`);
-  const active = new Set(
-    ((conns ?? []) as { user_id: string; status: string }[])
-      .filter((c) => c.status === "active")
-      .map((c) => c.user_id),
-  );
-  const todo = rows.filter((r) => active.has(r.user_id)).slice(0, limit);
+  const todo = (data ?? []) as CandidateRow[];
 
   const profiles = new Map<string, EditableProfile | null>();
   for (const row of todo) {
@@ -379,6 +375,12 @@ export async function generateFollowups(
       logFailure("draft", err);
       counts.failed++;
     }
+    const { error: checkedError } = await admin
+      .from("applications")
+      .update({ followup_checked_at: now().toISOString() })
+      .eq("id", row.id)
+      .eq("user_id", row.user_id);
+    if (checkedError) logFailure("followup_checked_at update", checkedError);
   }
   return counts;
 }

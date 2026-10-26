@@ -84,7 +84,7 @@ export type SyncRepliesResult = {
   errors: number;
 };
 
-type ConnectionRow = { user_id: string; last_sync_at: string | null };
+type ConnectionRow = { user_id: string; sync_attempted_at: string | null };
 
 type AppRow = {
   id: string;
@@ -98,10 +98,11 @@ type AppRow = {
   status_set_manually: boolean | null;
   followup_status: FollowupStatus | null;
   interview_notified_at: string | null;
+  replies_checked_at?: string | null;
 };
 
 const APP_COLUMNS =
-  "id, user_id, lead_id, status, gmail_thread_id, gmail_message_id, sent_at, last_reply_at, status_set_manually, followup_status, interview_notified_at";
+  "id, user_id, lead_id, status, gmail_thread_id, gmail_message_id, sent_at, last_reply_at, status_set_manually, followup_status, interview_notified_at, replies_checked_at";
 
 function dbError(what: string, error: { code?: string }): Error {
   return new Error(`${what} failed (${error.code ?? "unknown"})`);
@@ -188,27 +189,31 @@ export async function syncReplies(
 
   let connQuery = admin
     .from("google_connections")
-    .select("user_id, last_sync_at")
+    .select("user_id, sync_attempted_at")
     .eq("status", "active");
   if (opts.userId) connQuery = connQuery.eq("user_id", opts.userId);
   const { data: connData, error: connError } = await connQuery;
   if (connError) throw dbError("google_connections select", connError);
-  // Least recently synced first, so a run cut by the deadline never starves anyone.
+  // Least recently attempted first (complete or not), so a run cut by the
+  // deadline or a failing account never starves anyone.
   const connections = ((connData ?? []) as ConnectionRow[]).sort((a, b) =>
-    (a.last_sync_at ?? "").localeCompare(b.last_sync_at ?? ""),
+    (a.sync_attempted_at ?? "").localeCompare(b.sync_attempted_at ?? ""),
   );
 
   for (const conn of connections) {
     if (pastDeadline()) break;
     try {
       const outcome = await syncUser(admin, conn.user_id, deps, now, pastDeadline, result);
-      if (outcome === "done") {
-        const { error } = await admin
-          .from("google_connections")
-          .update({ last_sync_at: now().toISOString() })
-          .eq("user_id", conn.user_id);
-        if (error) logFailure("last_sync_at update", error);
-      }
+      const at = now().toISOString();
+      const { error } = await admin
+        .from("google_connections")
+        .update(
+          outcome === "done"
+            ? { last_sync_at: at, sync_attempted_at: at }
+            : { sync_attempted_at: at },
+        )
+        .eq("user_id", conn.user_id);
+      if (error) logFailure("sync timestamps update", error);
     } catch (err) {
       logFailure("syncUser", err);
       result.errors++;
@@ -238,7 +243,10 @@ async function syncUser(
     .gte("sent_at", since)
     .in("status", [...SENT_STATUSES]);
   if (appError) throw dbError("applications select", appError);
-  const apps = (appData ?? []) as AppRow[];
+  // Least recently checked threads first: a long list is covered over several runs.
+  const apps = ((appData ?? []) as AppRow[]).sort((a, b) =>
+    (a.replies_checked_at ?? "").localeCompare(b.replies_checked_at ?? ""),
+  );
   if (apps.length === 0) return "skipped";
 
   let token: { accessToken: string; email: string };
@@ -281,6 +289,14 @@ async function syncUser(
     try {
       const ok = await syncThread(admin, app, token, knownIds, deps, onUsage, pastDeadline, result);
       if (!ok) complete = false;
+      else {
+        const { error } = await admin
+          .from("applications")
+          .update({ replies_checked_at: now().toISOString() })
+          .eq("id", app.id)
+          .eq("user_id", userId);
+        if (error) logFailure("replies_checked_at update", error);
+      }
     } catch (err) {
       if (err instanceof StopUser) {
         result.errors++;
@@ -392,7 +408,9 @@ async function applyReply(
 ): Promise<void> {
   const userId = app.user_id;
   const patch: Record<string, unknown> = {};
-  const realReply = classification !== "auto_reply";
+  // A bounce is not an answer from a person: it must not block the follow-up
+  // and no_reply rules of the mail re-sent to another contact.
+  const realReply = classification !== "auto_reply" && classification !== "bounce";
   if (realReply && (!app.last_reply_at || receivedAt > app.last_reply_at)) {
     patch.last_reply_at = receivedAt;
   }
@@ -401,17 +419,16 @@ async function applyReply(
     if (next) patch.status = next;
   }
   if (Object.keys(patch).length > 0) {
-    const { error } = await admin
-      .from("applications")
-      .update(patch)
-      .eq("id", app.id)
-      .eq("user_id", userId);
+    let update = admin.from("applications").update(patch).eq("id", app.id).eq("user_id", userId);
+    // Never overwrite a card the student moved while this run was going.
+    if (patch.status) update = update.eq("status", app.status).eq("status_set_manually", false);
+    const { error } = await update;
     if (error) logFailure("applications update", error);
     else Object.assign(app, patch);
   }
 
-  // A real reply makes a pending follow-up draft pointless (never touch sending/sent).
-  if (realReply && app.followup_status === "draft") {
+  // A real reply or a bounce makes a pending follow-up draft pointless (never touch sending/sent).
+  if ((realReply || classification === "bounce") && app.followup_status === "draft") {
     const { error } = await admin
       .from("applications")
       .update({ followup_status: "dismissed" })

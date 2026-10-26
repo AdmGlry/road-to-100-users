@@ -150,6 +150,7 @@ type LeadRow = {
     naf_label: string | null;
     headcount_range: string | null;
     website: string | null;
+    careers_url?: string | null;
   } | null;
 };
 
@@ -277,7 +278,7 @@ export async function loadReviewState(
       supabase
         .from("leads")
         .select(
-          "id, fit_score, establishment_city, company:companies(name, city, naf_label, headcount_range, website)",
+          "id, fit_score, establishment_city, company:companies(name, city, naf_label, headcount_range, website, careers_url)",
         )
         .eq("user_id", userId)
         .in("id", leadIds),
@@ -314,6 +315,7 @@ export async function loadReviewState(
         activity: lead.company.naf_label,
         headcount_label: headcountLabel(normalizeHeadcountCode(lead.company.headcount_range)),
         website: lead.company.website,
+        careers_url: lead.company.careers_url ?? null,
       },
       contact: leadContacts.find((c) => c.id === a.contact_id) ?? null,
       contacts: leadContacts,

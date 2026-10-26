@@ -29,6 +29,7 @@ function item(over: Partial<ReviewItem> = {}): ReviewItem {
       activity: null,
       headcount_label: "10 à 19",
       website: null,
+      careers_url: null,
     },
     contact: {
       id: "c1",

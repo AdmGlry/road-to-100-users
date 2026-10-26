@@ -127,6 +127,7 @@ function llm(opts: { composeFails?: boolean; insight?: unknown } = {}) {
 }
 
 const noNet = {
+  siteFinder: null,
   webSearch: null,
   findEmailsOnWebsite: vi.fn(async () => []),
   hasMxRecord: vi.fn(async () => true),
@@ -198,6 +199,59 @@ describe("runPreparation", () => {
     const props = JSON.stringify(shared.events.map((e) => e.props));
     expect(props).not.toContain("Bonjour");
     expect(props).not.toMatch(/[\w.-]+@[\w-]+\.[a-z]{2,}/);
+  });
+
+  it("uses Context.dev first: website and careers page saved, no web search", async () => {
+    const { user, admin, shared } = setup();
+    await queuePreparation(user, USER, [lead(1)]);
+    const find = vi.fn(async () => ({
+      website: "https://www.acme-conseil.fr",
+      domain: "acme-conseil.fr",
+      careersUrl: "https://www.acme-conseil.fr/recrutement",
+      contactUrl: null,
+    }));
+    const webSearch = { search: vi.fn(async () => []) };
+    const findEmailsOnWebsite = vi.fn(async () => []);
+    const res = await runPreparation(admin, USER, {
+      deps: {
+        ...noNet,
+        siteFinder: { find },
+        webSearch,
+        findEmailsOnWebsite,
+        provider: llm().provider,
+      },
+    });
+    expect(res.done).toBe(1);
+    expect(find).toHaveBeenCalledWith("ACME CONSEIL");
+    expect(webSearch.search).not.toHaveBeenCalledWith(
+      expect.stringContaining("site officiel"),
+      expect.anything(),
+    );
+    expect(shared.companies.find((c) => c.id === COMPANY_A)).toMatchObject({
+      website: "https://www.acme-conseil.fr",
+      domain: "acme-conseil.fr",
+      careers_url: "https://www.acme-conseil.fr/recrutement",
+    });
+    expect(shared.companies.find((c) => c.id === COMPANY_A)?.enriched_at).toBeTruthy();
+    expect(findEmailsOnWebsite).toHaveBeenCalledWith("acme-conseil.fr");
+  });
+
+  it("rejects a Context.dev namesake whose domain does not match the company name", async () => {
+    const { user, admin, shared } = setup();
+    await queuePreparation(user, USER, [lead(1)]);
+    const find = vi.fn(async () => ({
+      website: "https://www.unrelated-corp.com",
+      domain: "unrelated-corp.com",
+      careersUrl: null,
+      contactUrl: null,
+    }));
+    await runPreparation(admin, USER, {
+      deps: { ...noNet, siteFinder: { find }, provider: llm().provider },
+    });
+    const company = shared.companies.find((c) => c.id === COMPANY_A);
+    expect(company?.website ?? null).toBeNull();
+    // Looked up once: not paid again on the next preparation.
+    expect(company?.enriched_at).toBeTruthy();
   });
 
   it("finds the website, saves it to companies, stores contacts and a sourced hook", async () => {

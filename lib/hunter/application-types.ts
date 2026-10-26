@@ -107,6 +107,8 @@ export type ReviewItem = {
     activity: string | null;
     headcount_label: string;
     website: string | null;
+    /** Careers page on the official site (may host a spontaneous-application form). */
+    careers_url: string | null;
   };
   contact: Contact | null;
   /** Every stored candidate for this lead (for "changer de contact"). */

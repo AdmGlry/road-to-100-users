@@ -28,6 +28,7 @@ import {
   type ContactCandidate,
 } from "@/lib/hunter/application-types";
 import { logEvent } from "@/lib/events";
+import { getCompanySiteFinder, type CompanySiteFinder } from "@/lib/integrations/context-dev";
 import { getWebSearchClient, type WebSearchClient } from "@/lib/integrations/websearch";
 import { LlmJsonError, type LlmProvider, type LlmUsageEvent } from "@/lib/llm/client";
 import { loadEditableProfile } from "@/lib/profile/service";
@@ -35,7 +36,7 @@ import type { EditableProfile } from "@/lib/profile/schema";
 
 import { composeApplication } from "./compose";
 import { findContacts } from "./contacts";
-import { pickOfficialWebsite, registrableDomain } from "./domains";
+import { domainNameMatch, pickOfficialWebsite, registrableDomain } from "./domains";
 import { headcountLabel, headcountMin } from "./headcount";
 import { findCompanyInsight } from "./research";
 
@@ -157,6 +158,8 @@ export async function queuePreparation(
 // runPreparation
 
 export type PrepareDeps = {
+  /** undefined → from CONTEXT_DEV_API_KEY; null → no Context.dev lookup. */
+  siteFinder?: CompanySiteFinder | null;
   /** undefined → from WEBSEARCH_PROVIDER; null → no web search. */
   webSearch?: WebSearchClient | null;
   findEmailsOnWebsite?: (domain: string) => Promise<{ email: string; page: string }[]>;
@@ -290,6 +293,7 @@ export async function runPreparation(
       return { done, failed, remaining: await countRemaining() };
     }
     const webSearch = deps.webSearch === undefined ? getWebSearchClient() : deps.webSearch;
+    const siteFinder = deps.siteFinder === undefined ? getCompanySiteFinder() : deps.siteFinder;
     const attempted = new Set<string>();
 
     const claimNext = async (): Promise<LeadRow | null> => {
@@ -364,28 +368,50 @@ export async function runPreparation(
         // 1. Website / domain (searched once per company, shared cache).
         step = "website";
         let websiteFound = !!facts.website;
-        if (!facts.website && !row.enriched_at && webSearch) {
-          const results = await webSearch.search(
-            `${facts.name}${facts.city ? ` ${facts.city}` : ""} site officiel`,
-            { maxResults: 5 },
-          );
-          if (results.length > 0) {
-            const picked = pickOfficialWebsite(results, facts.name);
+        if (!facts.website && !row.enriched_at && (siteFinder || webSearch)) {
+          // Context.dev first (website + careers/contact pages), then web search.
+          let picked: { website: string; domain: string } | null = null;
+          let pages: { careers_url: string | null; contact_url: string | null } = {
+            careers_url: null,
+            contact_url: null,
+          };
+          let searched = false;
+          if (siteFinder) {
+            searched = true;
+            const site = await siteFinder.find(facts.name);
+            // The name lookup may return a namesake: the domain must match the name.
+            if (site && domainNameMatch(site.domain, facts.name) > 0) {
+              picked = { website: site.website, domain: site.domain };
+              pages = { careers_url: site.careersUrl, contact_url: site.contactUrl };
+            }
+          }
+          if (!picked && webSearch) {
+            const results = await webSearch.search(
+              `${facts.name}${facts.city ? ` ${facts.city}` : ""} site officiel`,
+              { maxResults: 5 },
+            );
+            if (results.length > 0) {
+              searched = true;
+              picked = pickOfficialWebsite(results, facts.name);
+            }
+          }
+          if (searched) {
             const { error: wErr } = await admin
               .from("companies")
               .update({
                 website: picked?.website ?? null,
                 domain: picked?.domain ?? null,
+                ...pages,
                 enriched_at: new Date(now()).toISOString(),
               })
               .eq("id", row.id);
             if (wErr)
               console.warn(`[prepare] company enrichment save failed (${wErr.code ?? "unknown"})`);
-            if (picked) {
-              facts.website = picked.website;
-              facts.domain = picked.domain;
-              websiteFound = true;
-            }
+          }
+          if (picked) {
+            facts.website = picked.website;
+            facts.domain = picked.domain;
+            websiteFound = true;
           }
         }
 

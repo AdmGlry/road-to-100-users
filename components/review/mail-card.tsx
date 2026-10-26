@@ -110,6 +110,7 @@ export function MailCard({
   const words = countWords(editing ? body : item.body);
   const lengthState = bodyLengthState(words);
   const insightUrl = safeHttpUrl(item.company_insight_source);
+  const careersUrl = safeHttpUrl(item.company.careers_url);
   const hasContact = item.contact !== null && looksLikeEmail(item.contact.email);
   const busy = pending !== null;
   const dirty = subject.trim() !== item.subject.trim() || body.trim() !== item.body.trim();
@@ -326,6 +327,24 @@ export function MailCard({
               valider ce mail.
             </p>
           )
+        )}
+        {careersUrl && editable && (
+          <div className="bg-muted/40 flex flex-col gap-1 rounded-md p-3 text-sm">
+            <p className="text-muted-foreground">
+              Cette entreprise a une page recrutement. Si elle propose un formulaire de candidature
+              spontanée, tu peux aussi y coller ce texte.
+            </p>
+            <a
+              href={careersUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary decoration-primary/40 hover:decoration-primary inline-flex min-h-10 w-fit max-w-full items-center gap-1.5 underline underline-offset-4"
+            >
+              <span className="min-w-0 truncate">Page recrutement : {hostnameOf(careersUrl)}</span>
+              <ExternalLinkIcon aria-hidden="true" className="size-3.5 shrink-0" />
+              <span className="sr-only">(nouvel onglet)</span>
+            </a>
+          </div>
         )}
         {showPicker && (
           <ContactPicker

@@ -192,6 +192,11 @@ export function isGoogleConfigured(source: EnvSource = process.env): boolean {
   return googleSchema.safeParse(source).success;
 }
 
+/** Context.dev key (company website / careers page lookup, SPEC §7.4). Undefined = disabled. */
+export function getContextDevApiKey(source: EnvSource = process.env): string | undefined {
+  return parseEnv(z.object({ CONTEXT_DEV_API_KEY: optional() }), source).CONTEXT_DEV_API_KEY;
+}
+
 export function getResendApiKey(source: EnvSource = process.env): string | undefined {
   return parseEnv(z.object({ RESEND_API_KEY: optional() }), source).RESEND_API_KEY;
 }

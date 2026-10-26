@@ -21,6 +21,7 @@
 ## Outillage agents
 
 - `.claude/agents/qa-tester.md` : à lancer avant chaque fusion de sprint (PC 1440×900 + mobile 390×844, clair/sombre, sécurité/RGPD).
+- `.claude/agents/email-deliverability.md` (risques spam/rebonds des envois Gmail) et `gdpr-reviewer.md` (RGPD) : relecteurs en lecture seule, adaptés de VoltAgent/awesome-claude-code-subagents (MIT). À lancer quand un sprint touche aux envois ou aux données personnelles.
 - `.claude/skills/` : 10 skills design/QA relus et vendorisés (voir `.claude/skills/README.md` et chaque `SOURCE.md`). Impeccable sans son lanceur binaire (volontaire).
 - `DESIGN.md` : système visuel obligatoire pour toute interface.
 - Méthode qui marche : poser un contrat (types/signatures) → 2–3 agents en parallèle sur des fichiers disjoints → relecture → `qa-tester` → PR → fusion.

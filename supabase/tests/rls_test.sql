@@ -433,6 +433,8 @@ declare
   used int;
   slot uuid;
 begin
+  -- Seed sends are 1 h old (outside the 30 s spacing window, inside the 24 h quota).
+  update public.send_log set sent_at = now() - interval '1 hour' where user_id = b;
   select count(*) into used from public.send_log
    where user_id = b and sent_at > now() - interval '24 hours';
   slot := public.reserve_send_slot(b, null, used + 1);
@@ -444,6 +446,18 @@ begin
   end if;
   -- Releasing the slot (failed send) frees the quota again.
   delete from public.send_log where id = slot;
+  -- Spacing: a second send less than 30 s after the previous one is refused.
+  delete from public.send_log where user_id = b and sent_at > now() - interval '1 minute';
+  if public.reserve_send_slot(b, null, used + 5) is null then
+    raise exception 'FAIL: reserve_send_slot refused a slot under the limit';
+  end if;
+  begin
+    perform public.reserve_send_slot(b, null, used + 5);
+    raise exception 'FAIL: two sends less than 30 s apart';
+  exception when raise_exception then
+    if sqlerrm <> 'send_too_soon' then raise; end if;
+  end;
+  delete from public.send_log where user_id = b and sent_at > now() - interval '1 minute';
   if public.reserve_send_slot(b, null, used + 1) is null then
     raise exception 'FAIL: released slot not available again';
   end if;
@@ -535,6 +549,11 @@ begin
   exception when insufficient_privilege then null;
   end;
   begin
+    update public.applications set followup_status = 'draft', followup_body = 'x' where id = app_b;
+    raise exception 'FAIL: client wrote a follow-up';
+  exception when insufficient_privilege then null;
+  end;
+  begin
     insert into public.applications (user_id, lead_id, status, approved_at, scheduled_for)
     select 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', l.id, 'approved', now(), now()
       from public.leads l limit 1;
@@ -571,6 +590,37 @@ begin
   exception when insufficient_privilege then null;
   end;
   raise notice 'PASS: sent mails are read-only for clients';
+end
+$$;
+reset request.jwt.claim.sub;
+reset role;
+
+-- Sprint 4: cron ping helper (no-op without vault, path validated, cron only).
+do $$
+begin
+  perform public.trigger_cron_endpoint('/api/cron/sync-replies');
+  begin
+    perform public.trigger_cron_endpoint('https://evil.example/x');
+    raise exception 'FAIL: trigger_cron_endpoint accepted an arbitrary URL';
+  exception when raise_exception then
+    if sqlerrm like 'FAIL:%' then raise; end if;
+  end;
+  if (select followup_status from public.applications limit 1) is not null then
+    raise exception 'FAIL: followup_status should default to null';
+  end if;
+  raise notice 'PASS: trigger_cron_endpoint no-op without vault and path checked';
+end
+$$;
+set role authenticated;
+set request.jwt.claim.sub = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+do $$
+begin
+  begin
+    perform public.trigger_cron_endpoint('/api/cron/sync-replies');
+    raise exception 'FAIL: authenticated may call trigger_cron_endpoint';
+  exception when insufficient_privilege then
+    raise notice 'PASS: trigger_cron_endpoint is not callable by clients';
+  end;
 end
 $$;
 reset request.jwt.claim.sub;

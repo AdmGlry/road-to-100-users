@@ -48,7 +48,7 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
     private filters: ((r: Row) => boolean)[] = [];
     private columns = "*";
     private mode: "many" | "single" | "maybe" = "many";
-    private orderBy: { col: string; asc: boolean } | null = null;
+    private orderBy: { col: string; asc: boolean; nullsFirst: boolean } | null = null;
     private max: number | null = null;
     private countMode: { head: boolean } | null = null;
 
@@ -120,8 +120,8 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
       this.filters.push((r) => (op === "is" && value === null ? r[col] != null : r[col] !== value));
       return this;
     }
-    order(col: string, o: { ascending?: boolean } = {}) {
-      this.orderBy = { col, asc: o.ascending ?? true };
+    order(col: string, o: { ascending?: boolean; nullsFirst?: boolean } = {}) {
+      this.orderBy = { col, asc: o.ascending ?? true, nullsFirst: o.nullsFirst ?? false };
       return this;
     }
     limit(n: number) {
@@ -205,13 +205,13 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, opts: Fa
 
       result = this.embed(result);
       if (this.orderBy) {
-        const { col, asc } = this.orderBy;
+        const { col, asc, nullsFirst } = this.orderBy;
         result.sort((a, b) => {
           const x = a[col] as number | null;
           const y = b[col] as number | null;
           if (x === y) return 0;
-          if (x === null || x === undefined) return 1;
-          if (y === null || y === undefined) return -1;
+          if (x === null || x === undefined) return nullsFirst ? -1 : 1;
+          if (y === null || y === undefined) return nullsFirst ? 1 : -1;
           return asc ? (x < y ? -1 : 1) : x < y ? 1 : -1;
         });
       }

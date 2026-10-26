@@ -14,7 +14,7 @@ const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37, 0, 2
 
 function input(overrides: Partial<MimeInput> = {}): MimeInput {
   return {
-    from: { name: "Léa Martin", email: "lea.martin@gmail.com" },
+    from: { name: "Léa Martin", email: "lea.martin@example.com" },
     to: "recrutement@acme.fr",
     subject: "Alternance Business Analyst – sept. 2027 – Acme",
     text: "Bonjour,\n\nJe m'appelle Léa.\nMerci !",
@@ -72,7 +72,7 @@ describe("buildMimeMessage", () => {
     expect(subject).toMatch(/^=\?UTF-8\?B\?/);
     expect(decodeWords(subject)).toBe("Alternance Business Analyst – sept. 2027 – Acme");
     const from = msg.match(/From: (.*(?:\r\n .*)*)/)![1];
-    expect(decodeWords(from)).toBe("Léa Martin <lea.martin@gmail.com>");
+    expect(decodeWords(from)).toBe("Léa Martin <lea.martin@example.com>");
   });
 
   it("keeps ASCII headers readable and quotes display names", () => {
@@ -104,6 +104,40 @@ describe("buildMimeMessage", () => {
   it("works without attachment", () => {
     const msg = decode(buildMimeMessage(input({ attachment: undefined })));
     expect(msg).not.toContain("Content-Disposition");
+  });
+
+  it("adds In-Reply-To and References (defaulting to In-Reply-To) for follow-ups", () => {
+    const msg = decode(
+      buildMimeMessage(input({ attachment: undefined, inReplyTo: "<CAorig@mail.gmail.com>" })),
+    );
+    expect(msg).toContain("\r\nIn-Reply-To: <CAorig@mail.gmail.com>\r\n");
+    expect(msg).toContain("\r\nReferences: <CAorig@mail.gmail.com>\r\n");
+    const headers = msg.slice(0, msg.indexOf("\r\n\r\n"));
+    expect(headers).toContain("MIME-Version: 1.0");
+
+    const chain = decode(
+      buildMimeMessage(input({ inReplyTo: "<b@x.fr>", references: ["<a@x.fr>", "<b@x.fr>"] })),
+    );
+    expect(chain).toContain("References: <a@x.fr>\r\n <b@x.fr>");
+  });
+
+  it("has no reply headers by default", () => {
+    const msg = decode(buildMimeMessage(input()));
+    expect(msg).not.toContain("In-Reply-To");
+    expect(msg).not.toContain("References");
+  });
+
+  it("rejects invalid Message-IDs (injection, missing brackets)", () => {
+    for (const bad of [
+      "CAorig@mail.gmail.com",
+      "<CAorig@mail.gmail.com>\r\nBcc: x@y.fr",
+      "<no-at-sign>",
+      "<a b@x.fr>",
+      "<<a@x.fr>>",
+    ]) {
+      expect(() => buildMimeMessage(input({ inReplyTo: bad }))).toThrow(MimeError);
+      expect(() => buildMimeMessage(input({ references: [bad] }))).toThrow(MimeError);
+    }
   });
 });
 

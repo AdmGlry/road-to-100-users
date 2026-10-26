@@ -5,6 +5,7 @@ import {
   getSendQuota,
   releaseSendSlot,
   reserveSendSlot,
+  SendTooSoonError,
   sendSpacingMs,
 } from "@/lib/quotas";
 
@@ -76,6 +77,18 @@ describe("getSendQuota", () => {
 });
 
 describe("reserveSendSlot / releaseSendSlot", () => {
+  it("throws SendTooSoonError when the previous send is less than 30 s old", async () => {
+    const { client } = createFakeSupabase(
+      {},
+      {
+        rpc: () => {
+          throw new Error("send_too_soon");
+        },
+      },
+    );
+    await expect(reserveSendSlot(client, USER, "app-1")).rejects.toBeInstanceOf(SendTooSoonError);
+  });
+
   it("calls reserve_send_slot with the limit and returns the slot id or null", async () => {
     const args: unknown[] = [];
     let answer: string | null = "slot-1";

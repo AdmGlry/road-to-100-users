@@ -1,0 +1,7 @@
+{
+  "from": "\"Claire Moreau\" <claire.moreau@acme-conseil.fr>",
+  "subject": "Re: Alternance Business Analyst – sept. 2027 – Acme Conseil",
+  "autoHeaders": {},
+  "text": "Bonjour Léa,\n\nMerci pour votre candidature, votre profil nous intéresse. Seriez-vous disponible pour un premier échange en visio de 30 minutes la semaine prochaine ? Mardi 14h ou jeudi 10h ?\n\nBien cordialement,\n\nClaire Moreau\nResponsable RH\n\nLe lun. 26 oct. 2026 à 10:02, Léa Martin <lea.martin@example.com> a écrit :\n> Bonjour,\n> Je me permets de vous contacter...",
+  "expected": "interview"
+}

@@ -1,0 +1,9 @@
+{
+  "from": "Mail Delivery Subsystem <mailer-daemon@googlemail.com>",
+  "subject": "Delivery Status Notification (Failure)",
+  "autoHeaders": {
+    "auto-submitted": "auto-replied"
+  },
+  "text": "Adresse introuvable\n\nVotre message n'a pas été distribué à jean.dupont@acme-industrie.fr, car l'adresse est introuvable ou n'accepte pas les e-mails entrants.",
+  "expected": "bounce"
+}

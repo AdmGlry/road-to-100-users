@@ -1,0 +1,7 @@
+{
+  "from": "contact@boulangeries-martin.fr",
+  "subject": "Réponse automatique : Candidature spontanée – alternance commerce",
+  "autoHeaders": {},
+  "text": "Merci pour votre message. Nous l'avons bien reçu et nous vous répondrons dans les meilleurs délais.",
+  "expected": "auto_reply"
+}

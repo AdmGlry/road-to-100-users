@@ -1,0 +1,7 @@
+{
+  "from": "Sophie Laurent <s.laurent@greenlog.fr>",
+  "subject": "Re: Alternance supply chain – Greenlog",
+  "autoHeaders": {},
+  "text": "Bonjour,\n\nPourriez-vous m'envoyer votre calendrier d'alternance ainsi que la date exacte de début souhaitée ? Je transmettrai ensuite votre dossier au responsable logistique.\n\nCordialement,\nSophie Laurent",
+  "expected": "info_request"
+}

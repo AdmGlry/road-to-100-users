@@ -12,6 +12,8 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs for Open Graph images and canonical links (Vercel falls back to its own URL).
+  metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
   title: "Spontané",
   description:
     "Envoie 20 candidatures spontanées ciblées en moins de 15 minutes, puis suis les réponses sans rien saisir.",

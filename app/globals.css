@@ -61,6 +61,7 @@
   --margin-rule: #c3302a;
 
   /* Motion */
+  --ease-landing: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --duration-fast: 120ms;
@@ -109,8 +110,56 @@
   }
 }
 
+/*
+ * Landing identity (marketing pages and 404 only, see DESIGN.md "Landing").
+ * Monochrome with one signal green, Geist. Re-maps the shadcn variables inside
+ * `.landing` so the shared utilities keep working; the app keeps its tokens.
+ */
+.landing {
+  --background: #ffffff;
+  --foreground: #000000;
+  --surface: #f6f6f6;
+  --raised: #ececec;
+  --border: #e3e3e3;
+  --muted-foreground: #666666;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --primary-hover: #313131;
+  --ring: #000000;
+  --signal: #0b7a46;
+  --signal-soft: #e3f4ea;
+  --heading-from: #000000;
+  --heading-to: #666666;
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  .landing {
+    --background: #000000;
+    --foreground: #ffffff;
+    --surface: #181818;
+    --raised: #272727;
+    --border: #313131;
+    --muted-foreground: #9b9b9b;
+    --primary: #ffffff;
+    --primary-foreground: #000000;
+    --primary-hover: #e3e3e3;
+    --ring: #ffffff;
+    --signal: #5be49b;
+    --signal-soft: #1f1f1f;
+    --heading-from: #ffffff;
+    --heading-to: #9b9b9b;
+  }
+}
+
 @theme inline {
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-primary-hover: var(--primary-hover);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --ease-landing: var(--ease-landing);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -150,18 +199,120 @@
   --ease-in-out: var(--ease-in-out);
 }
 
-/* The landing's one orchestrated moment: source underlines draw in once. */
+/*
+ * Landing load intro (hero only, CSS so it runs without JS): elements rise
+ * from below and resolve from blur, staggered with inline animation delays.
+ */
 @theme {
-  --animate-source-mark: source-mark 700ms var(--ease-out) both;
+  --animate-landing-up: landing-up 800ms var(--ease-landing) both;
+  --animate-landing-card: landing-card 1000ms var(--ease-landing) both;
+  --animate-landing-pop: landing-pop 600ms var(--ease-landing) both;
 
-  @keyframes source-mark {
+  @keyframes landing-up {
     from {
-      background-size: 0% 2px;
-    }
-    to {
-      background-size: 100% 2px;
+      opacity: 0;
+      translate: 0 10px;
+      filter: blur(4px);
     }
   }
+  @keyframes landing-card {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+      scale: 0.985;
+      filter: blur(6px);
+    }
+  }
+  @keyframes landing-pop {
+    from {
+      opacity: 0;
+      scale: 0.85;
+      filter: blur(4px);
+    }
+  }
+}
+
+/*
+ * Story loops of the benefit cards (design-to-motion): each one leaves the
+ * resting design, acts, and comes back to it. Paused off screen, removed with
+ * reduced motion (rules after the base layer below).
+ */
+@theme {
+  --animate-story-rows: story-rows 4.8s var(--ease-landing) infinite;
+  --animate-story-light: story-light 4.8s var(--ease-landing) infinite;
+  --animate-story-pop: story-pop 4.8s var(--ease-landing) infinite;
+  --animate-story-sheen: story-sheen 3.4s var(--ease-landing) infinite;
+  --animate-story-pulse: story-pulse 2s var(--ease-landing) infinite;
+
+  @keyframes story-rows {
+    0%,
+    25%,
+    100% {
+      translate: 0 0;
+    }
+    33%,
+    58% {
+      translate: 0 100%;
+    }
+    66%,
+    91% {
+      translate: 0 200%;
+    }
+  }
+  @keyframes story-light {
+    0%,
+    10% {
+      opacity: 0;
+    }
+    15%,
+    25% {
+      opacity: 1;
+    }
+    32%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes story-pop {
+    0%,
+    55% {
+      scale: 1;
+    }
+    62% {
+      scale: 1.08;
+    }
+    72%,
+    100% {
+      scale: 1;
+    }
+  }
+  @keyframes story-sheen {
+    0% {
+      translate: -150% 0;
+    }
+    45%,
+    100% {
+      translate: 300% 0;
+    }
+  }
+  @keyframes story-pulse {
+    0% {
+      opacity: 0.55;
+      scale: 1;
+    }
+    100% {
+      opacity: 0;
+      scale: 2.6;
+    }
+  }
+}
+
+/* Hero heading: the only gradient of the landing, on text, never a background. */
+@utility text-heading-gradient {
+  background-image: linear-gradient(to right, var(--heading-from), var(--heading-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /*
@@ -278,6 +429,67 @@
       transition-duration: 1ms !important;
     }
   }
+}
+
+/*
+ * Landing scroll reveals (components/marketing/reveal-observer.tsx): a section
+ * rises 32px and fades in once. Hidden only when scripts run, so the page reads
+ * fine without JS. Reduced motion keeps a plain 300ms fade, no movement.
+ */
+@layer base {
+  .landing {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  /* Literal values: the variables resolve on body, outside `.landing`. */
+  body:has(> .landing) {
+    background-color: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    body:has(> .landing) {
+      background-color: #000000;
+    }
+  }
+  .landing ::selection {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+
+  .landing [data-reveal] {
+    transition:
+      opacity 700ms var(--ease-landing),
+      translate 700ms var(--ease-landing);
+  }
+  .landing [data-word] {
+    transition: opacity 500ms var(--ease-landing);
+  }
+
+  @media (scripting: enabled) {
+    .landing [data-reveal]:not([data-revealed]) {
+      opacity: 0;
+      translate: 0 32px;
+    }
+    .landing [data-word]:not([data-lit]) {
+      opacity: 0.3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing [data-reveal]:not([data-revealed]) {
+      translate: none;
+    }
+    .landing [data-reveal] {
+      transition-duration: 300ms !important;
+    }
+    .landing [data-story] * {
+      animation: none !important;
+    }
+  }
+}
+
+/* Unlayered so it wins over the `animate-*` shorthands of the utilities layer. */
+.landing [data-story]:not([data-playing]) * {
+  animation-play-state: paused;
 }
 
 /* Mobile-native (see .claude/skills/mobile-native) */

@@ -1,4 +1,4 @@
-# Passation — état du projet au 2026-10-26
+# Passation — état du projet au 2026-10-27
 
 À lire au début de chaque nouvelle session, après `AGENTS.md` et `SPEC.md`.
 
@@ -60,3 +60,14 @@ Sprint 5, en attente du propriétaire :
 3. Compte context.dev gratuit (clé saisie dans Vercel par le propriétaire) pour l'essai comparé de recherche de contacts.
 
 Recherche web : désactivée (`WEBSEARCH_PROVIDER` absent = `none`). Pour l'activer : crédits OpenRouter (`openrouter`) ou clé Brave Search (`brave` + `BRAVE_SEARCH_API_KEY`).
+
+## Mise à jour du 2026-10-27
+
+- **Context.dev** (PR #10, fusionnée) : site officiel + page recrutement/contact des entreprises, avant la recherche web ; `CONTEXT_DEV_API_KEY` saisie par le propriétaire dans Vercel (production). Migration `company_pages` appliquée.
+- **Page d'accueil refaite** (PR #11, branche `claude/sprint-3-gmail`, CI verte, **en attente de l'accord du propriétaire pour fusionner**) : skill `landing-page-design` (elayadesign) appliqué en entier, uniquement sur les pages marketing (`DESIGN.md` « Landing »). Les liens « Confidentialité » et « Conditions » du pied de page sont affichés « (bientôt) » : à brancher sur les pages RGPD du Sprint 5.
+- **Décisions du propriétaire** :
+  - rester sur les modèles gratuits OpenRouter pour l'instant (pas de budget) : le point « IA payante » du Sprint 5 attend ;
+  - ne PAS faire le « Garant » (attestation d'un référent) ni le « Radar des réponses » (taux de réponse collectifs) proposés dans les rapports de recherche. Le « Radar » du Sprint 6 (signaux publics de recrutement) reste prévu ;
+  - extension Chrome « copilote » et scraping Apify : non décidés, ne rien faire.
+- **Reste du Sprint 5 à coder maintenant** : RGPD minimum (politique de confidentialité, conditions d'utilisation, export JSON, suppression de compte avec révocation Google + CV + toutes les lignes, purge après 12 mois d'inactivité), puis onboarding guidé en 3 étapes (CV → préférences → Gmail) et rappel de reconnexion Gmail.
+- **En attente du propriétaire** : test réel Gmail (réponse + « Synchroniser maintenant »), corriger la ville du profil (« France ») et tester Context.dev sur 2 candidatures, configuration SMTP Brevo dans Supabase Auth.
